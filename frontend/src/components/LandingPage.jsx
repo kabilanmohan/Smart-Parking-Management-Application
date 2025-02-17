@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 const LandingPage = () => {
+  const navigate = useNavigate(); // Hook for navigation
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
       {/* Animated Background */}
@@ -9,7 +13,6 @@ const LandingPage = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center p-8 rounded-lg shadow-2xl bg-black/80 backdrop-blur-md">
-        {/* Add the Local Image */}
         <img
           src="/batman-logo.jpg" // Reference the image from the public folder
           alt="Batman Logo"
@@ -18,7 +21,12 @@ const LandingPage = () => {
 
         <h1 className="text-6xl font-bold text-white mb-4"> Gotham Parking </h1>
         <p className="text-xl text-gray-300 mb-8"> Smart parking solutions  </p>
-        <button className="px-6 py-3 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-600 transition duration-300">
+        
+        {/* Button to navigate to the App */}
+        <button
+          className="px-6 py-3 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-600 transition duration-300"
+          onClick={() => navigate("/dashboard")} // Navigate to /dashboard
+        >
           Enter the Batcave
         </button>
       </div>
