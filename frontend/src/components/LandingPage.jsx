@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import batmanlogo from "../assets/batman-logo.jpg";
 
 const LandingPage = () => {
   const navigate = useNavigate(); // Hook for navigation
@@ -14,7 +15,7 @@ const LandingPage = () => {
       {/* Content */}
       <div className="relative z-10 text-center p-8 rounded-lg shadow-2xl bg-black/80 backdrop-blur-md">
         <img
-          src="/batman-logo.jpg" // Reference the image from the public folder
+          src={batmanlogo} // Reference the image from the public folder
           alt="Batman Logo"
           className="w-24 h-24 mx-auto mb-6"
         />
