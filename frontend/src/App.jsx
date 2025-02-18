@@ -5,6 +5,7 @@ import Home from "./components/Home";
 import LandingPage from "./components/LandingPage"; // Import LandingPage
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import AdminProfile from "./components/AdminProfile";
 
 function App() {
   const [user, setUser] = React.useState(null);
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} /> 
         <Route path="/dashboard" element={user ? <Home /> : <Auth />} /> 
+        <Route path="/admin" element={<AdminProfile />} />
       </Routes>
     </Router>
   );
