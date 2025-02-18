@@ -9,30 +9,22 @@ const PaymentForm = ({ onPaymentSuccess }) => {
   const [discountCode, setDiscountCode] = useState("");
   const [amount, setAmount] = useState(50); // Default amount
   const [error, setError] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Calculate the current year and 10 years in the future
   const currentYear = new Date().getFullYear();
-  const minDate = `${currentYear}-01`; // January of the current year
-  const maxDate = `${currentYear + 10}-12`; // December of 10 years from now
+  const minDate = `${currentYear}-01`;
+  const maxDate = `${currentYear + 10}-12`;
 
   const handleCardNumberChange = (e) => {
-    const sanitizedValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
-    let formattedValue = "";
-
-    // Add a space after every 4 digits
-    for (let i = 0; i < sanitizedValue.length; i += 4) {
-      if (i > 0) formattedValue += " "; // Add a space before each group of 4 digits
-      formattedValue += sanitizedValue.substring(i, i + 4);
-    }
-
-    // Limit the total length to 19 characters (16 digits + 3 spaces)
+    const sanitizedValue = e.target.value.replace(/\D/g, "");
+    let formattedValue = sanitizedValue.replace(/(\d{4})/g, "$1 ").trim();
     if (formattedValue.length <= 19) {
       setCardNumber(formattedValue);
     }
   };
 
   const validateInputs = () => {
-    const numericCardNumber = cardNumber.replace(/\s/g, ""); // Remove spaces for validation
+    const numericCardNumber = cardNumber.replace(/\s/g, "");
 
     if (!numericCardNumber || !expiryDate || !cvv || !name) {
       setError("All fields are required.");
@@ -49,48 +41,54 @@ const PaymentForm = ({ onPaymentSuccess }) => {
       return false;
     }
 
-    setError(""); // Clear any previous errors
+    setError("");
     return true;
   };
 
   const applyDiscount = async () => {
-    if (!discountCode) return;
+    if (!discountCode) return 0;
 
-    const q = query(collection(db, "discounts"), where("code", "==", discountCode));
-    const querySnapshot = await getDocs(q);
+    try {
+      const q = query(collection(db, "discounts"), where("code", "==", discountCode));
+      const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-      setError("Invalid discount code.");
-      return;
+      if (querySnapshot.empty) {
+        setError("Invalid discount code.");
+        return 0;
+      }
+
+      return querySnapshot.docs[0].data().discount;
+    } catch (error) {
+      console.error("Error applying discount:", error);
+      return 0;
     }
-
-    const discountData = querySnapshot.docs[0].data();
-    setAmount(amount - discountData.discount);
   };
 
   const handlePayment = async () => {
     if (!validateInputs()) return;
 
-    if (discountCode) {
-      await applyDiscount();
-    }
+    setIsProcessing(true);
+    const discount = await applyDiscount();
+    const finalAmount = amount - discount;
 
-    // Simulate payment processing
     const transaction = {
       name,
-      cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`, // Format last 4 digits
-      amount,
+      cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
+      amount: finalAmount,
       date: new Date().toLocaleString(),
     };
 
-    // Save transaction to Firebase
-    await addDoc(collection(db, "transactions"), transaction);
+    try {
+      await addDoc(collection(db, "transactions"), transaction);
+      onPaymentSuccess(transaction);
+      alert("Payment Successful!");
+      resetForm();
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      setError("Payment failed. Please try again.");
+    }
 
-    // Notify parent component
-    onPaymentSuccess(transaction);
-
-    alert("Payment Successful!");
-    resetForm();
+    setIsProcessing(false);
   };
 
   const resetForm = () => {
@@ -104,38 +102,41 @@ const PaymentForm = ({ onPaymentSuccess }) => {
   };
 
   return (
-    <div className="payment-form">
-      <h2>Payment Details</h2>
+    <div className="card payment-form">
+      <h2 className="text-center">Payment Details</h2>
       <div className="form-group">
-        <label>Card Number</label>
+        <label>Card Number💳</label>
         <input
           type="text"
           value={cardNumber}
           onChange={handleCardNumberChange}
-          placeholder="Enter card number"
+          placeholder="1234 5678 9012 3456"
         />
-        <i className="icon">💳</i>
       </div>
       <div className="form-group">
-        <label>Expiry Date</label>
+        <label>Expiry Date📅</label>
         <input
           type="month"
           value={expiryDate}
           onChange={(e) => setExpiryDate(e.target.value)}
-          min={minDate} // Set minimum date to current year
-          max={maxDate} // Set maximum date to 10 years in the future
+          min={minDate}
+          max={maxDate}
         />
-        <i className="icon">📅</i>
       </div>
       <div className="form-group">
-        <label>CVV</label>
+        <label>CVV🔒</label>
         <input
           type="text"
           value={cvv}
-          onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))} // Sanitize CVV
-          placeholder="Enter CVV"
+          onChange={(e) => {
+            const sanitizedValue = e.target.value.replace(/\D/g, ""); // Remove non-digits
+            if (sanitizedValue.length <= 3) {
+              setCvv(sanitizedValue); // Allow only up to 3 digits
+            }
+          }}
+          placeholder="123"
+          maxLength={3} // Ensure the input field doesn't allow more than 3 characters
         />
-        <i className="icon">🔒</i>
       </div>
       <div className="form-group">
         <label>Cardholder Name</label>
@@ -143,7 +144,7 @@ const PaymentForm = ({ onPaymentSuccess }) => {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter cardholder name"
+          placeholder="Alice Bob"
         />
       </div>
       <div className="form-group">
@@ -152,11 +153,13 @@ const PaymentForm = ({ onPaymentSuccess }) => {
           type="text"
           value={discountCode}
           onChange={(e) => setDiscountCode(e.target.value)}
-          placeholder="Enter discount code"
+          placeholder="DISCOUNT50"
         />
       </div>
       {error && <p className="error">{error}</p>}
-      <button onClick={handlePayment}>Pay Now</button>
+      <button className="pay-button" onClick={handlePayment} disabled={isProcessing}>
+        {isProcessing ? "Processing..." : "Pay Now"}
+      </button>
     </div>
   );
 };
