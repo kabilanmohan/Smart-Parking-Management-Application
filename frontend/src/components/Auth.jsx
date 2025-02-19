@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -7,56 +7,65 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../firebase";
-import { useNavigate } from "react-router-dom";
+import batmanParkingImage from "../assets/batman-parking2.jpeg";
 
 const Auth = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false); // Dark mode state
-  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false,
+    name: '',
+  });
+  const [message, setMessage] = useState('');
 
-  // Toggle dark/light mode
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        setMessage("Account created! Redirecting to Home...");
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        setMessage("Login successful! Redirecting...");
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        setMessage("Login successful! Redirecting to Home...");
+        await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        setMessage("Account created! Redirecting...");
       }
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage(error.message);
     }
   };
 
+  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      setMessage("Google sign-in successful! Redirecting to Home...");
-      setTimeout(() => navigate("/"), 2000);
+      setMessage("Google sign-in successful! Redirecting...");
+      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage(error.message);
     }
   };
 
+  // Handle forgot password
   const handleForgotPassword = async () => {
-    if (!email) {
+    if (!formData.email) {
       setMessage("Please enter your email address.");
       return;
     }
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, formData.email);
       setMessage("Password reset email sent! Check your inbox.");
     } catch (error) {
       setMessage(error.message);
@@ -64,162 +73,165 @@ const Auth = () => {
   };
 
   return (
-    <div
-      className={`flex flex-col items-center justify-center min-h-screen ${
-        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-      } relative`}
-    >
-      {/* Dark/Light Mode Toggle */}
-      <button
-        onClick={toggleDarkMode}
-        className="absolute top-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-full shadow-md"
-      >
-        {isDarkMode ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-yellow-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+    <div className="min-h-screen bg-[#0A0F1C] flex items-center justify-center p-4">
+      {/* Main Container */}
+      <div className="w-full max-w-[1440px] h-[90vh] flex shadow-2xl rounded-2xl overflow-hidden">
+        {/* Left Hero Section */}
+          <div className="hidden md:block w-1/2 relative overflow-hidden">
+            <img
+              src={batmanParkingImage}
+              alt="Smart Parking"
+              className="absolute inset-0 w-full h-full object-cover object-center"
             />
-          </svg>
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-700"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            />
-          </svg>
-        )}
-      </button>
-
-      {/* Form Container */}
-      <div
-        className={`relative bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-200 dark:border-gray-700 z-10`}
-      >
-        <h1 className="text-2xl font-bold text-center mb-4">
-          {isSignUp ? "Sign Up" : "Sign In"}
-        </h1>
-        <p className="text-sm text-center mb-6">
-          {isSignUp
-            ? "Create a new account to get started."
-            : "Enter your credentials to access your account."}
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-          {!isForgotPassword && (
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0A0F1C]/80 to-transparent p-12 flex flex-col justify-between">
+              <div className="text-white">
+                <h1 className="text-4xl font-extrabold mb-4">GOTHAM PARKING</h1>
+                <p className="text-xl text-gray-300 font-light">The Dark Knight&apos;s Parking Solution</p>
+              </div>
+              {/* <div className="space-y-3">
+                <div className="flex items-center space-x-4 text-white">
+            <i className="fas fa-shield-alt text-2xl text-[#00F0FF]"></i>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1">
-                Password
-              </label>
+              <h3 className="text-xl font-semibold">Secure Access</h3>
+              <p className="text-gray-300">Advanced encryption for your safety</p>
+            </div>
+                </div>
+                <div className="flex items-center space-x-4 text-white">
+            <i className="fas fa-mobile-alt text-2xl text-[#00F0FF]"></i>
+            <div>
+              <h3 className="text-xl font-semibold">Smart Control</h3>
+              <p className="text-gray-300">Manage parking from your phone</p>
+            </div>
+                </div>
+                <div className="flex items-center space-x-4 text-white">
+            <i className="fas fa-clock text-2xl text-[#00F0FF]"></i>
+            <div>
+              <h3 className="text-xl font-semibold">Real-time Updates</h3>
+              <p className="text-gray-300">Instant notifications and status</p>
+            </div>
+                </div>
+              </div> */}
+          </div>
+        </div>
+
+        {/* Right Auth Section */}
+        <div className="w-full md:w-1/2 bg-[#0A0F1C] p-6 md:p-12 flex flex-col justify-center">
+          <div className="mb-8 flex justify-center">
+            <div className="bg-[#1A1F2C] rounded-full p-1">
+              <button
+                className={`px-6 py-2 rounded-full transition-all duration-300 ${isLogin ? 'bg-[#2E6FFF] text-white' : 'text-gray-400'}`}
+                onClick={() => setIsLogin(true)}
+              >
+                Sign In
+              </button>
+              <button
+                className={`px-6 py-2 rounded-full transition-all duration-300 ${!isLogin ? 'bg-[#2E6FFF] text-white' : 'text-gray-400'}`}
+                onClick={() => setIsLogin(false)}
+              >
+                Sign Up
+              </button>
+            </div>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <div className="relative">
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#1A1F2C] text-white px-12 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6FFF] transition-all"
+                  placeholder="Full Name"
+                  required
+                />
+                <i className="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              </div>
+            )}
+
+            <div className="relative">
               <input
-                id="password"
-                type="password"
-                placeholder="********"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full bg-[#1A1F2C] text-white px-12 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6FFF] transition-all"
+                placeholder="Email Address"
                 required
               />
+              <i className="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
             </div>
-          )}
-          {!isForgotPassword ? (
-            <>
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                {isSignUp ? "Sign Up" : "Sign In"}
-              </button>
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                className="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-white py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <img
-                  src="https://www.google.com/favicon.ico"
-                  alt="Google Logo"
-                  className="w-4 h-4"
-                />
-                Sign {isSignUp ? "Up" : "In"} with Google
-              </button>
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsForgotPassword(true)}
-                  className="text-sm text-blue-600 hover:text-blue-500"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className="w-full bg-[#1A1F2C] text-white px-12 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6FFF] transition-all"
+                placeholder="Password"
+                required
+              />
+              <i className="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               <button
                 type="button"
-                onClick={handleForgotPassword}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
               >
-                Send Reset Email
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
-              <div className="text-center">
+            </div>
+            {isLogin && (
+              <div className="flex items-center justify-between text-gray-400">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="rememberMe"
+                    checked={formData.rememberMe}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded border-gray-600 text-[#2E6FFF] focus:ring-[#2E6FFF]"
+                  />
+                  <span>Remember me</span>
+                </label>
                 <button
                   type="button"
-                  onClick={() => setIsForgotPassword(false)}
-                  className="text-sm text-blue-600 hover:text-blue-500"
+                  onClick={handleForgotPassword}
+                  className="text-[#2E6FFF] hover:text-[#00F0FF] transition-colors"
                 >
-                  Back to {isSignUp ? "Sign Up" : "Sign In"}
+                  Forgot Password?
                 </button>
               </div>
-            </>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-[#2E6FFF] to-[#00F0FF] text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+            >
+              {isLogin ? 'Sign In' : 'Create Account'}
+            </button>
+            <div className="relative text-center my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-700"></div>
+              </div>
+              <span className="relative px-4 bg-[#0A0F1C] text-gray-400">Or continue with</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              {['Google', 'Apple', 'Facebook'].map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  onClick={provider === 'Google' ? handleGoogleSignIn : null}
+                  className="flex items-center justify-center space-x-2 bg-[#1A1F2C] text-white py-3 rounded-lg hover:bg-[#2A2F3C] transition-colors"
+                >
+                  <i className={`fab fa-${provider.toLowerCase()}`}></i>
+                  <span>{provider}</span>
+                </button>
+              ))}
+            </div>
+          </form>
+          {message && (
+            <p className={`mt-4 text-center text-sm ${message.includes('success') ? 'text-green-500' : 'text-red-500'}`}>
+              {message}
+            </p>
           )}
-        </form>
-        <div className="text-center mt-4 text-sm">
-          {isSignUp ? "Already have an account? " : "Not registered? "}
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-blue-600 hover:text-blue-500"
-          >
-            {isSignUp ? "Sign In" : "Create account"}
-          </button>
         </div>
-        {message && (
-          <p
-            className={`mt-4 text-center text-sm ${
-              message.includes("success") ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
       </div>
     </div>
   );
