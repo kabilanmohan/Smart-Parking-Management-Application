@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { db, collection, addDoc, getDocs, query, where } from "../firebase";
+import { serverTimestamp } from "firebase/firestore";
 
 const PaymentForm = ({ onPaymentSuccess }) => {
   const [cardNumber, setCardNumber] = useState("");
@@ -46,7 +47,7 @@ const PaymentForm = ({ onPaymentSuccess }) => {
   };
 
   const applyDiscount = async () => {
-    if (!discountCode) return 0;
+    if (!discountCode) return 0; // No discount code entered
 
     try {
       const q = query(collection(db, "discounts"), where("code", "==", discountCode));
@@ -54,12 +55,16 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
       if (querySnapshot.empty) {
         setError("Invalid discount code.");
-        return 0;
+        return 0; // Return 0 instead of null
       }
 
-      return querySnapshot.docs[0].data().discount;
+      const discountValue = querySnapshot.docs[0].data().discount;
+      setAmount((prevAmount) => Math.max(prevAmount - discountValue, 0)); // Ensure no negative amount
+      setError("");
+      return discountValue;
     } catch (error) {
       console.error("Error applying discount:", error);
+      setError("Failed to apply discount.");
       return 0;
     }
   };
@@ -69,13 +74,13 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
     setIsProcessing(true);
     const discount = await applyDiscount();
-    const finalAmount = amount - discount;
+    const finalAmount = Math.max(amount - discount, 0);
 
     const transaction = {
       name,
       cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
-      amount: finalAmount,
-      date: new Date().toLocaleString(),
+      amount: finalAmount, // Store the correct final amount
+      date: serverTimestamp(),
     };
 
     try {
@@ -102,62 +107,84 @@ const PaymentForm = ({ onPaymentSuccess }) => {
   };
 
   return (
-    <div className="card payment-form">
-      <h2 className="text-center">Payment Details</h2>
-      <div className="form-group">
-        <label>Card Number💳</label>
+    <div className="bg-blue-950 rounded-lg shadow-lg p-6 max-w-sm mx-auto">
+      <h2 className="text-2xl font-bold text-center mb-6">Payment Details</h2>
+
+      <div className="mb-4">
+        <label className="block font-bold mb-2">Card Number💳</label>
         <input
           type="text"
           value={cardNumber}
           onChange={handleCardNumberChange}
           placeholder="1234 5678 9012 3456"
+          className="w-full p-2 rounded bg-gray-800 text-white"
         />
       </div>
-      <div className="form-group">
-        <label>Expiry Date📅</label>
+
+      <div className="mb-4">
+        <label className="block font-bold mb-2">Expiry Date📅</label>
         <input
           type="month"
           value={expiryDate}
           onChange={(e) => setExpiryDate(e.target.value)}
           min={minDate}
           max={maxDate}
+          className="w-full p-2 rounded bg-gray-800 text-white"
         />
       </div>
-      <div className="form-group">
-        <label>CVV🔒</label>
+
+      <div className="mb-4">
+        <label className="block font-bold mb-2">CVV🔒</label>
         <input
           type="text"
           value={cvv}
           onChange={(e) => {
-            const sanitizedValue = e.target.value.replace(/\D/g, ""); // Remove non-digits
+            const sanitizedValue = e.target.value.replace(/\D/g, "");
             if (sanitizedValue.length <= 3) {
-              setCvv(sanitizedValue); // Allow only up to 3 digits
+              setCvv(sanitizedValue);
             }
           }}
           placeholder="123"
-          maxLength={3} // Ensure the input field doesn't allow more than 3 characters
+          maxLength={3}
+          className="w-full p-2 rounded bg-gray-800 text-white"
         />
       </div>
-      <div className="form-group">
-        <label>Cardholder Name</label>
+
+      <div className="mb-4">
+        <label className="block font-bold mb-2">Cardholder Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Alice Bob"
+          className="w-full p-2 rounded bg-gray-800 text-white"
         />
       </div>
-      <div className="form-group">
-        <label>Discount Code (Optional)</label>
+
+      <div className="mb-4">
+        <label className="block font-bold mb-2">Discount Code (Optional)</label>
         <input
           type="text"
           value={discountCode}
           onChange={(e) => setDiscountCode(e.target.value)}
           placeholder="DISCOUNT50"
+          className="w-full p-2 rounded bg-gray-800 text-white"
         />
+        <button
+          className="mt-2 px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 block mx-auto"
+          onClick={applyDiscount}
+        >
+          Apply Discount
+        </button>
       </div>
-      {error && <p className="error">{error}</p>}
-      <button className="pay-button" onClick={handlePayment} disabled={isProcessing}>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      <button
+        className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold py-2 rounded hover:from-yellow-500 hover:to-orange-600 transition-all"
+        onClick={handlePayment}
+        disabled={isProcessing}
+      >
         {isProcessing ? "Processing..." : "Pay Now"}
       </button>
     </div>
