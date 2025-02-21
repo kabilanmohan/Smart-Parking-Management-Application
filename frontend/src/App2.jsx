@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PaymentForm from "./components/PaymentForm";
 import PaymentSummary from "./components/PaymentSummary";
 import TransactionHistory from "./components/TransactionHistory";
