@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import PaymentForm from "./components/PaymentForm";
-import PaymentSummary from "./components/PaymentSummary";
 import TransactionHistory from "./components/TransactionHistory";
 
 function App2() {
   const [transactions, setTransactions] = useState([]);
-  const [amount, setAmount] = useState(50); // Default amount
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -26,10 +24,8 @@ function App2() {
           <PaymentForm
             onPaymentSuccess={(transaction) => {
               setTransactions([...transactions, transaction]);
-              setAmount(transaction.amount); // Update amount dynamically
             }}
           />
-          <PaymentSummary amount={amount} />
         </section>
         <section id="history">
           <TransactionHistory />
