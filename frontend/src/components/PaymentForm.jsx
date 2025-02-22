@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { db, collection, addDoc, getDocs, query, where } from "../firebase";
-import { serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
+import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
+import PaymentSummary from "./PaymentSummary"; // Import the PaymentSummary component
 
 const PaymentForm = ({ onPaymentSuccess }) => {
   const [cardNumber, setCardNumber] = useState("");
@@ -9,19 +10,69 @@ const PaymentForm = ({ onPaymentSuccess }) => {
   const [name, setName] = useState("");
   const [discountCode, setDiscountCode] = useState("");
   const [amount, setAmount] = useState(50); // Default amount
+  const [finalAmount, setFinalAmount] = useState(50); // Track final amount after discount
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const currentYear = new Date().getFullYear();
-  const minDate = `${currentYear}-01`;
-  const maxDate = `${currentYear + 10}-12`;
+  const applyDiscount = async () => {
+    if (!discountCode) return 0; // No discount code entered
 
-  const handleCardNumberChange = (e) => {
-    const sanitizedValue = e.target.value.replace(/\D/g, "");
-    let formattedValue = sanitizedValue.replace(/(\d{4})/g, "$1 ").trim();
-    if (formattedValue.length <= 19) {
-      setCardNumber(formattedValue);
+    try {
+      const q = query(collection(db, "discounts"), where("code", "==", discountCode));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setError("Invalid discount code.");
+        return 0; // Return 0 instead of null
+      }
+
+      const discountDoc = querySnapshot.docs[0].data();
+      const discountValue = discountDoc.discount;
+
+      if (typeof discountValue !== 'number') {
+        setError("Invalid discount value in database.");
+        return 0;
+      }
+
+      // Calculate discount amount as a percentage of the original amount
+      const discountAmount = (amount * discountValue) / 100;
+      const newFinalAmount = Math.max(amount - discountAmount, 0); // Ensure no negative amount
+      setFinalAmount(newFinalAmount); // Update final amount
+      setError("");
+      return discountAmount; // Return the discount amount
+    } catch (error) {
+      console.error("Error applying discount:", error);
+      setError("Failed to apply discount. Please try again later.");
+      return 0;
     }
+  };
+
+  const handlePayment = async () => {
+    if (!validateInputs()) return;
+
+    setIsProcessing(true);
+    const discount = await applyDiscount();
+    const newFinalAmount = Math.max(amount - discount, 0); // Recalculate final amount
+    setFinalAmount(newFinalAmount); // Update final amount
+
+    const transaction = {
+      name,
+      cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
+      amount: newFinalAmount, // Use the final amount
+      date: new Date(),
+    };
+
+    try {
+      await addDoc(collection(db, "transactions"), transaction);
+      onPaymentSuccess(transaction);
+      alert("Payment Successful!");
+      resetForm();
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      setError("Payment failed. Please try again.");
+    }
+
+    setIsProcessing(false);
   };
 
   const validateInputs = () => {
@@ -46,56 +97,6 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     return true;
   };
 
-  const applyDiscount = async () => {
-    if (!discountCode) return 0; // No discount code entered
-
-    try {
-      const q = query(collection(db, "discounts"), where("code", "==", discountCode));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        setError("Invalid discount code.");
-        return 0; // Return 0 instead of null
-      }
-
-      const discountValue = querySnapshot.docs[0].data().discount;
-      setAmount((prevAmount) => Math.max(prevAmount - discountValue, 0)); // Ensure no negative amount
-      setError("");
-      return discountValue;
-    } catch (error) {
-      console.error("Error applying discount:", error);
-      setError("Failed to apply discount.");
-      return 0;
-    }
-  };
-
-  const handlePayment = async () => {
-    if (!validateInputs()) return;
-
-    setIsProcessing(true);
-    const discount = await applyDiscount();
-    const finalAmount = Math.max(amount - discount, 0);
-
-    const transaction = {
-      name,
-      cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
-      amount: finalAmount, // Store the correct final amount
-      date: serverTimestamp(),
-    };
-
-    try {
-      await addDoc(collection(db, "transactions"), transaction);
-      onPaymentSuccess(transaction);
-      alert("Payment Successful!");
-      resetForm();
-    } catch (error) {
-      console.error("Error processing payment:", error);
-      setError("Payment failed. Please try again.");
-    }
-
-    setIsProcessing(false);
-  };
-
   const resetForm = () => {
     setCardNumber("");
     setExpiryDate("");
@@ -103,6 +104,7 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     setName("");
     setDiscountCode("");
     setAmount(50);
+    setFinalAmount(50); // Reset final amount
     setError("");
   };
 
@@ -110,29 +112,38 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     <div className="bg-blue-950 rounded-lg shadow-lg p-6 max-w-sm mx-auto">
       <h2 className="text-2xl font-bold text-center mb-6">Payment Details</h2>
 
+      {/* Card Number Input */}
       <div className="mb-4">
         <label className="block font-bold mb-2">Card Number💳</label>
         <input
           type="text"
           value={cardNumber}
-          onChange={handleCardNumberChange}
+          onChange={(e) => {
+            const sanitizedValue = e.target.value.replace(/\D/g, "");
+            let formattedValue = sanitizedValue.replace(/(\d{4})/g, "$1 ").trim();
+            if (formattedValue.length <= 19) {
+              setCardNumber(formattedValue);
+            }
+          }}
           placeholder="1234 5678 9012 3456"
           className="w-full p-2 rounded bg-gray-800 text-white"
         />
       </div>
 
+      {/* Expiry Date Input */}
       <div className="mb-4">
         <label className="block font-bold mb-2">Expiry Date📅</label>
         <input
           type="month"
           value={expiryDate}
           onChange={(e) => setExpiryDate(e.target.value)}
-          min={minDate}
-          max={maxDate}
+          min={`${new Date().getFullYear()}-01`}
+          max={`${new Date().getFullYear() + 10}-12`}
           className="w-full p-2 rounded bg-gray-800 text-white"
         />
       </div>
 
+      {/* CVV Input */}
       <div className="mb-4">
         <label className="block font-bold mb-2">CVV🔒</label>
         <input
@@ -150,6 +161,7 @@ const PaymentForm = ({ onPaymentSuccess }) => {
         />
       </div>
 
+      {/* Cardholder Name Input */}
       <div className="mb-4">
         <label className="block font-bold mb-2">Cardholder Name</label>
         <input
@@ -161,6 +173,7 @@ const PaymentForm = ({ onPaymentSuccess }) => {
         />
       </div>
 
+      {/* Discount Code Input */}
       <div className="mb-4">
         <label className="block font-bold mb-2">Discount Code (Optional)</label>
         <input
@@ -178,8 +191,10 @@ const PaymentForm = ({ onPaymentSuccess }) => {
         </button>
       </div>
 
+      {/* Error Message */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
+      {/* Pay Now Button */}
       <button
         className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold py-2 rounded hover:from-yellow-500 hover:to-orange-600 transition-all"
         onClick={handlePayment}
@@ -187,6 +202,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
       >
         {isProcessing ? "Processing..." : "Pay Now"}
       </button>
+
+      {/* Display PaymentSummary with the final amount */}
+      <PaymentSummary amount={finalAmount} />
     </div>
   );
 };
