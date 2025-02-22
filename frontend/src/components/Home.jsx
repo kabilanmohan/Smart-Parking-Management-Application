@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-import { auth } from "../firebase"; // Ensure this path is correct
+import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { auth, db } from "../firebase"; // Ensure this path is correct
 import { signOut } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
 import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaBars, FaSignOutAlt } from "react-icons/fa";
 import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
@@ -43,10 +44,8 @@ const Home = () => {
   ]);
 
   const [position, setPosition] = useState({ lat: 37.7749, lng: -122.4194 }); // Default to San Francisco
-  const [parkingSpaces] = useState([
-    { id: 1, location: { lat: 37.7749, lng: -122.4194 }, name: "Wayne Tower Parking", address: "123 Gotham Street, Downtown", price: "$5/hour", spots: 25, distance: "0.3 miles" },
-    { id: 2, location: { lat: 37.7849, lng: -122.4294 }, name: "Batcave Garage", address: "456 Arkham Road", price: "$4/hour", spots: 42, distance: "0.8 miles" },
-  ]);
+  const [parkingSpaces, setParkingSpaces] = useState([]);
+  const [selectedSpace, setSelectedSpace] = useState(null);
 
   useEffect(() => {
     // Get user's current location
@@ -54,7 +53,43 @@ const Home = () => {
       (pos) => setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => alert("Geolocation permission denied")
     );
+
+    // Fetch parking spaces from Firestore
+    const fetchParkingSpaces = async () => {
+      const querySnapshot = await getDocs(collection(db, "ParkingSpaces"));
+      const spaces = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        spaces.push({
+          id: doc.id,
+          location: { lat: data.location.latitude, lng: data.location.longitude },
+          name: data.Name,
+          address: data.Address || "No address provided",
+          price: `$${data.pricing.car}/hour`,
+          spots: data.TotalSlots,
+          distance: "0.3 miles", // You can calculate this dynamically if needed
+          rating: data.rating,
+          levels: data.levels,
+          pricing: data.pricing,
+        });
+      });
+      console.log("Fetched Parking Spaces:", spaces);
+      setParkingSpaces(spaces);
+    };
+
+    fetchParkingSpaces();
   }, []);
+
+  const handleDirectionsClick = (space) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${space.location.lat},${space.location.lng}`;
+    window.open(url, "_blank");
+  };
+
+  const handleBookNowClick = (space) => {
+    // Redirect to booking page with space details
+    // Example: history.push(`/book/${space.id}`);
+    alert(`Redirecting to booking page for ${space.name}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-gray-200">
@@ -69,7 +104,6 @@ const Home = () => {
           {/* Logo */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-yellow-400 font-batman">GOTHAM PARKING </h1>
-            
           </div>
 
           {/* Navigation Menu */}
@@ -111,7 +145,11 @@ const Home = () => {
       </aside>
 
       {/* Main Content */}
-      <div className={`ml-${isSidebarOpen ? "64" : "0"} p-6 transition-all`}>
+      <div
+        className={`transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? "ml-64" : "ml-0"
+        }`}
+      >
         {/* Menu Reopen Button (Always Visible) */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -121,7 +159,7 @@ const Home = () => {
         </button>
 
         {/* Top Navigation */}
-        <header className="flex items-center justify-between mb-8">
+        <header className="flex items-center justify-between mb-8 p-6">
           {/* Search Bar */}
           <div className="flex-1 mx-4">
             <input
@@ -161,7 +199,7 @@ const Home = () => {
         </header>
 
         {/* Stats Cards - Total Spots, Available Now, Active Bookings */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6">
           {/* Total Spots */}
           <div className="bg-gray-800 p-6 rounded-xl shadow-md">
             <h2 className="text-lg font-bold mb-2">Total Caves Available</h2>
@@ -185,7 +223,7 @@ const Home = () => {
         </div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
           {/* Left Column - Parking Map */}
           <div className="lg:col-span-2">
             <div className="bg-gray-800 p-6 rounded-xl shadow-md mb-8">
@@ -216,12 +254,47 @@ const Home = () => {
                   }}
                 >
                   {/* User Location Marker */}
-                  <Marker position={position} />
+                  <Marker position= {position}  />
 
                   {/* Parking Space Markers */}
                   {parkingSpaces.map((space) => (
-                    <Marker key={space.id} position={space.location} />
+                    <Marker
+                      key={space.id}
+                      position={space.location}
+                      onClick={() => setSelectedSpace(space)}
+                    />
                   ))}
+
+                  {/* InfoWindow for Selected Parking Space */}
+                  {selectedSpace && (
+                    <InfoWindow
+                      position={selectedSpace.location}
+                      onCloseClick={() => setSelectedSpace(null)}
+                    >
+                      <div className="text-black">
+                        <h3 className="font-bold">{selectedSpace.name}</h3>
+                        <p>{selectedSpace.address}</p>
+                        <p>Rating: {selectedSpace.rating}</p>
+                        <p>Total Slots: {selectedSpace.spots}</p>
+                        <p>Levels: {selectedSpace.levels}</p>
+                        <p>Pricing: Car - ${selectedSpace.pricing.car}/hour, Bike - ${selectedSpace.pricing.bike}/hour</p>
+                        <div className="mt-2">
+                          <button
+                            onClick={() => handleDirectionsClick(selectedSpace)}
+                            className="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-blue-600 transition-colors"
+                          >
+                            Directions
+                          </button>
+                          <button
+                            onClick={() => handleBookNowClick(selectedSpace)}
+                            className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors"
+                          >
+                            Book Now
+                          </button>
+                        </div>
+                      </div>
+                    </InfoWindow>
+                  )}
                 </GoogleMap>
               </LoadScript>
             </div>

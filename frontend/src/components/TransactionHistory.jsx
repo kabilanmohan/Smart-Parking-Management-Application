@@ -3,7 +3,7 @@ import { db } from "../firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 const TransactionHistory = () => {
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,9 +21,10 @@ const TransactionHistory = () => {
           };
         });
 
-        setTransactions(data);
+        setTransactions(data || []); // Ensure data is always an array
       } catch (error) {
         console.error("Error fetching transactions:", error);
+        setTransactions([]); // Fallback to an empty array on error
       } finally {
         setLoading(false);
       }
@@ -55,7 +56,7 @@ const TransactionHistory = () => {
                 <td className="p-3">{txn.name}</td>
                 <td className="p-3">{txn.cardNumber}</td>
                 <td className="p-3">${txn.amount.toFixed(2)}</td>
-                <td className="p-3">{txn.date.toLocaleString()}</td> {/* Display formatted date */}
+                <td className="p-3">{txn.date.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
