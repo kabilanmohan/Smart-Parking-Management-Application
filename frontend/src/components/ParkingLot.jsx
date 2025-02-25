@@ -1,62 +1,77 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import car from "../assets/car.png";
+import { db } from "../../temp"; 
+import { doc, getDoc } from "firebase/firestore";
+import gcar from "../assets/green_car.png";
+import rcar from "../assets/red_car.png";
 import scooter from "../assets/scooter.png";
 
 const ParkingLot = () => {
   const location = useLocation();
-  const selectedSpot = location.state?.selectedSpot;
-  const totalSlots = selectedSpot?.spots || 50;
+  const selectedSpot = location.state?.selectedSpot || {};
+  const [selectedLevel, setSelectedLevel] = useState("1"); // Default to Level-1
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [parkingData, setParkingData] = useState(null);
 
-  // State management
-  const [selectedVehicle, setSelectedVehicle] = useState("Four-wheeler"); // Vehicle type selection
-  const [selectedSlot, setSelectedSlot] = useState(null); // Parking slot selection
-  const [occupiedSlots, setOccupiedSlots] = useState(new Set());
-
+  // Fetch parking slot data from Firestore
   useEffect(() => {
-    if (totalSlots > 0) {
-      const occupied = new Set();
-      while (occupied.size < Math.floor(totalSlots * 0.6)) {
-        occupied.add(Math.floor(Math.random() * totalSlots));
+    const fetchParkingData = async () => {
+      const slotRef = doc(db, "ParkingSlots", "parkingSlot123");
+      const slotSnap = await getDoc(slotRef);
+
+      if (slotSnap.exists()) {
+        setParkingData(slotSnap.data());
+      } else {
+        console.log("No such parking slot data found");
       }
-      setOccupiedSlots(occupied);
+    };
+
+    fetchParkingData();
+  }, []);
+
+  // Determine total slots based on Firestore data
+  const totalSlots =
+    parkingData?.levels[selectedLevel]?.grid.reduce(
+      (sum, row) => sum + row.cols.length,
+      0
+    ) || 50;
+
+  // Handle slot selection
+  const handleSlotSelection = (row, col, isAvailable) => {
+    if (isAvailable) {
+      setSelectedSlot({ row, col });
     }
-  }, [totalSlots]);
-  
-  const handleVehicleSelection = (vehicle) => {
-    setSelectedVehicle(vehicle);
-    setSelectedSlot(null); // Reset slot selection when switching vehicles
   };
 
   return (
-    <div className="flex flex-col items-center mt-0 bg-[#1a1a1a]">
-      <h2 className="text-white text-2xl font-bold mt-5">{selectedSpot?.name || "Parking Lot"}</h2>
-      <p className="text-gray-400">{selectedSpot?.address}</p>
+    <div className="flex flex-col items-center bg-[#1a1a1a] min-h-screen p-5">
+      <h2 className="text-white text-2xl font-bold">{selectedSpot.name || "Parking Lot"}</h2>
+      <p className="text-gray-400">{selectedSpot.address || "Unknown Address"}</p>
 
-      {/* Vehicle Selection */}
+      {/* Level Selection */}
       <div className="flex space-x-4 mt-5">
-        <button
-          onClick={() => handleVehicleSelection("Four-wheeler")}
-          className={`px-4 py-2 rounded-md transition ${
-            selectedVehicle === "Four-wheeler" ? "bg-gray-700 text-white ring-4 ring-white" : "bg-gray-800 text-white hover:bg-gray-700"
-          }`}
-        >
-          Four-wheeler
-        </button>
-        <button
-          onClick={() => handleVehicleSelection("Two-wheeler")}
-          className={`px-4 py-2 rounded-md transition ${
-            selectedVehicle === "Two-wheeler" ? "bg-gray-700 text-white ring-4 ring-white" : "bg-gray-800 text-white hover:bg-gray-700"
-          }`}
-        >
-          Two-wheeler
-        </button>
+        {Object.keys(parkingData?.levels || {}).map((level) => (
+          <button
+            key={level}
+            onClick={() => {
+              setSelectedLevel(level);
+              setSelectedSlot(null);
+            }}
+            className={`mt-5 px-6 py-2 rounded-md transition ${
+              selectedLevel === level
+                ? "bg-gray-700 text-white ring-4 ring-white"
+                : "bg-gray-800 text-white hover:bg-gray-700"
+            }`}
+          >
+            Level {level}
+          </button>
+        ))}
         {/* Confirm Booking Button */}
       <button
-        disabled={!selectedVehicle || !selectedSlot} // Enable only if both are selected
-        className={`px-4 py-2 rounded-md transition ${
-          selectedVehicle && selectedSlot
-            ? "bg-blue-700 text-white hover:bg-blue-800 "
+        disabled={!selectedSlot}
+        className={`mt-5 px-6 py-2 rounded-md transition ${
+          selectedSlot
+            ? "bg-blue-700 text-white hover:bg-blue-800"
             : "bg-gray-500 text-gray-300 cursor-not-allowed"
         }`}
       >
@@ -64,45 +79,41 @@ const ParkingLot = () => {
       </button>
       </div>
 
-      {/* Parking Grid: Render based on vehicle selection */}
-      {selectedVehicle === "Four-wheeler" && (
-        <div className="grid grid-cols-10 border-white border-4 p-4 mt-10 mb-10 ml-0 gap-5">
-          {Array.from({ length: totalSlots }, (_, index) => (
-            <div
-              key={index}
-              onClick={() => !occupiedSlots.has(index) && setSelectedSlot(index + 1)}
-              className={`w-20 h-32 flex items-center justify-center text-white font-bold rounded-md shadow-md cursor-pointer transition ${
-                occupiedSlots.has(index)
-                  ? "bg-[#1a1a1a] cursor-not-allowed"
-                  : selectedSlot === index + 1
-                  ? "bg-green-800"
-                  : "bg-green-500 hover:scale-105 hover:bg-green-800"
-              }`}
-            >
-              {occupiedSlots.has(index) ? <img src={car} alt="Occupied" className="w-20 h-32" /> : <div>{index + 1}</div>}
-            </div>
-          ))}
+      {/* Parking Grid */}
+      {parkingData && parkingData.levels[selectedLevel] ? (
+        <div
+    className="grid border-white border-4 p-4 mt-10 gap-1"
+    style={{
+      gridTemplateColumns: `repeat(${parkingData.levels[selectedLevel].grid[0]?.cols.length || 1}, minmax(50px, 1fr))`,
+    }}
+  >
+          {parkingData.levels[selectedLevel].grid.map((row, rowIndex) =>
+            row.cols.map((slot, colIndex) => {
+              const isAvailable = parkingData.levels[selectedLevel].availability[rowIndex].cols[colIndex];
+              return (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  onClick={() => handleSlotSelection(rowIndex, colIndex, isAvailable)}
+                  className={`w-20 h-32 flex items-center justify-center text-white font-bold rounded-md cursor-pointer transition ${
+                    slot === 0
+                      ? "bg-gray-500 cursor-not-allowed" // Entrance
+                      : slot === 1
+                      ? "bg-[#1a1a1a] cursor-not-allowed"
+                      : !isAvailable
+                      ? "bg-[#1a1a1a] cursor-not-allowed" // Occupied
+                      : selectedSlot?.row === rowIndex && selectedSlot?.col === colIndex
+                      ? "bg-[#1a1a1a] border-white-500 border-4"
+                      : "bg-[#1a1a1a] hover:scale-105 hover:bg-[#1a1a1a]"
+                  }`}
+                >
+                  {slot === 0 ? "Entrance" : slot === 2 ? !isAvailable ? <img src={rcar} alt="Occupied" className="w-16 h-28" /> : <img src={gcar} alt="Occupied" className="w-18 h-32" />: slot === 3 ? !isAvailable ? <img src={rcar} alt="Occupied" className="w-16 h-28" /> : <img src={gcar} alt="Occupied" className="w-18 h-32" />: ""}
+                </div>
+              );
+            })
+          )}
         </div>
-      )}
-
-      {selectedVehicle === "Two-wheeler" && (
-        <div className="grid grid-cols-12 border-white border-4 p-4 mt-10 mb-10 ml-0 gap-3">
-          {Array.from({ length: totalSlots }, (_, index) => (
-            <div
-              key={index}
-              onClick={() => !occupiedSlots.has(index) && setSelectedSlot(index + 1)}
-              className={`w-20 h-32 flex items-center justify-center text-white font-bold rounded-md shadow-md cursor-pointer transition ${
-                occupiedSlots.has(index)
-                  ? "bg-[#1a1a1a] cursor-not-allowed"
-                  : selectedSlot === index + 1
-                  ? "bg-green-800"
-                  : "bg-green-500 hover:scale-105 hover:bg-green-800"
-              }`}
-            >
-              {occupiedSlots.has(index) ? <img src={scooter} alt="Occupied" className="w-20 h-32" /> : <div>{index + 1}</div>}
-            </div>
-          ))}
-        </div>
+      ) : (
+        <p className="text-white mt-5">Loading parking slots...</p>
       )}
 
       
