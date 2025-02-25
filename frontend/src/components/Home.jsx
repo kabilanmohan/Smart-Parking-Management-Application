@@ -26,20 +26,20 @@ const Home = () => {
   const [activeMenuItem, setActiveMenuItem] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [notifications] = useState([
-    {
-      id: 1,
-      title: "Upcoming Booking Reminder",
-      message: "Your parking at Wayne Tower starts in 2 hours",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      title: "Payment Successful",
-      message: "Payment for Batcave Parking completed",
-      time: "5 hours ago",
-    },
-  ]);
+  // const [notifications] = useState([
+  //   {
+  //     id: 1,
+  //     title: "Upcoming Booking Reminder",
+  //     message: "Your parking at Wayne Tower starts in 2 hours",
+  //     time: "2 hours ago",
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Payment Successful",
+  //     message: "Payment for Batcave Parking completed",
+  //     time: "5 hours ago",
+  //   },
+  // ]);
 
   const [position, setPosition] = useState({ lat: 37.7749, lng: -122.4194 }); // Default to San Francisco
   const [parkingSpaces, setParkingSpaces] = useState([]);
