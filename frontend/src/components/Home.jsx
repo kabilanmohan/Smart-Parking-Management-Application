@@ -320,17 +320,22 @@ const Home = () => {
               ))}
             </div>
 
-            {/* Recent Notifications */}
-            <div className="bg-gray-800 p-6 rounded-xl shadow-md">
-              <h2 className="text-lg font-bold mb-4">Recent Notifications</h2>
-              {notifications.map((notification) => (
+            {/* Favorite Spots */}
+            <div className="bg-gray-800 p-6 rounded-xl shadow-md mb-8">
+              <h2 className="text-lg font-bold mb-4">Favorite Spots</h2>
+              {parkingSpaces.map((spot) => (
                 <div
-                  key={notification.id}
-                  className="p-4 bg-gray-700 rounded-lg mb-2 last:mb-0 hover:bg-gray-600 transition-colors"
+                  key={spot.id}
+                  className="flex justify-between items-center p-4 border-b border-gray-700 last:border-b-0 hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <h3 className="font-semibold">{notification.title}</h3>
-                  <p className="text-sm">{notification.message}</p>
-                  <small className="text-gray-400 text-xs">{notification.time}</small>
+                  <div>
+                    <h3 className="font-semibold">{spot.name}</h3>
+                    <p className="text-sm text-gray-400">{spot.address}</p>
+                    <p className="text-sm text-gray-400">{spot.price} • {spot.spots} spots • {spot.distance}</p>
+                  </div>
+                  <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors">
+                    Book Now
+                  </button>
                 </div>
               ))}
             </div>
