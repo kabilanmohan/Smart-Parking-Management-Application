@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
 import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaBars, FaSignOutAlt } from "react-icons/fa";
 import batmanlogo from "../assets/batman-logo.jpg";
+import { useNavigate } from "react-router-dom";
 
 const containerStyle = {
   width: "100%",
@@ -22,6 +23,7 @@ const handleLogout = async () => {
 };
 
 const Home = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeMenuItem, setActiveMenuItem] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -313,7 +315,7 @@ const Home = () => {
                     <p className="text-sm text-gray-400">{spot.address}</p>
                     <p className="text-sm text-gray-400">{spot.price} • {spot.spots} spots • {spot.distance}</p>
                   </div>
-                  <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors">
+                  <button onClick={() => navigate("/parking-lot",{state:{selectedSpot:spot}})} className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors">
                     Book Now
                   </button>
                 </div>
