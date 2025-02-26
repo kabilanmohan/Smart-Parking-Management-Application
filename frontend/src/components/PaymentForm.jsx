@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
 import PaymentSummary from "./PaymentSummary"; // Import the PaymentSummary component
+import PropTypes from 'prop-types';
 
 const PaymentForm = ({ onPaymentSuccess }) => {
   const [cardNumber, setCardNumber] = useState("");
@@ -207,6 +208,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
       <PaymentSummary amount={finalAmount} />
     </div>
   );
+};
+PaymentForm.propTypes = {
+  onPaymentSuccess: PropTypes.func.isRequired,
 };
 
 export default PaymentForm;

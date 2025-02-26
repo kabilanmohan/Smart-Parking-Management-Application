@@ -6,9 +6,11 @@ import gcar from "../assets/g_car.png";
 import rcar from "../assets/r_car.png";
 import gscooter from "../assets/g_scooter.png";
 import rscooter from "../assets/r_scooter.png"
+import { useNavigate } from "react-router-dom";
 
 const ParkingLot = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const selectedSpot = location.state?.selectedSpot || {};
   const [selectedLevel, setSelectedLevel] = useState("1"); // Default to Level-1
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -73,6 +75,7 @@ const ParkingLot = () => {
           {/* Confirm Booking Button */}
           <button
             disabled={!selectedSlot}
+            onClick={() => navigate("/payment_module")}
             className={`px-6 py-2 rounded-md transition ${
               selectedSlot
                 ? "bg-blue-700 text-white hover:bg-blue-800"
@@ -110,11 +113,11 @@ const ParkingLot = () => {
                       : !isAvailable
                       ? "bg-[#1a1a1a] cursor-not-allowed border-white-500 border-2"  // Occupied
                       : selectedSlot?.row === rowIndex && selectedSlot?.col === colIndex
-                        ? "bg-[#1a1a1a] border-green-500 border-2"  // Selected Slot (With Border)
+                        ? "bg-[#1a1a1a] border-green-500 border-2"  
                         : "bg-[#1a1a1a] border-white-500 border-2 hover:scale-105 hover:border-green-500 hover:border-3"
                     }`}
                 >
-                  {/* Vehicle Image & Price */}
+                 
                   {slot === 0 ? "ENTRY"
                     : slot === 4 ? "EXIT"
                     : (
