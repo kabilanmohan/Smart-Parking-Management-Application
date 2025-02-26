@@ -88,7 +88,7 @@ const Home = () => {
   const handleBookNowClick = (space) => {
     // Redirect to booking page with space details
     // Example: history.push(`/book/${space.id}`);
-    alert(`Redirecting to booking page for ${space.name}`);
+    navigate("/parking-lot",{state:{selectedSpot:space}});
   };
 
   return (
