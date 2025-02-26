@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-import { auth } from "../firebase"; // Ensure this path is correct
+import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
-import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaBars, FaSignOutAlt } from "react-icons/fa";
+import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaSignOutAlt, FaClipboardList } from "react-icons/fa";
 import batmanlogo from "../assets/batman-logo.jpg";
 import AdminProfile from "../components/AdminProfile";
+import PendingRequests from "../components/PendingRequests";
 
 const containerStyle = {
   width: "100%",
@@ -21,11 +22,21 @@ const handleLogout = async () => {
 };
 
 const Home = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeMenuItem, setActiveMenuItem] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [position, setPosition] = useState({ lat: 37.7749, lng: -122.4194 });
+
+  // Sidebar state with localStorage persistence
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    localStorage.getItem("sidebarState") !== "false"
+  );
+
+  const toggleSidebar = () => {
+    const newState = !isSidebarOpen;
+    setIsSidebarOpen(newState);
+    localStorage.setItem("sidebarState", newState);
+  };
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -37,19 +48,26 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-gray-200">
       {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-[#0d0d0d] shadow-lg transition-transform duration-300 ease-in-out z-50 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
-      >
+      <aside className={`fixed top-0 left-0 h-full ${isSidebarOpen ? "w-64" : "w-16"} bg-[#0d0d0d] shadow-lg z-50 transition-all`}>
         <div className="p-6 flex flex-col h-full">
-          <h1 className="text-2xl font-bold text-yellow-400 font-batman">GOTHAM PARKING</h1>
-          
+          <h1 className={`text-2xl font-bold text-yellow-400 font-batman transition-opacity ${isSidebarOpen ? "opacity-100" : "opacity-0"}`}>
+            GOTHAM PARKING
+          </h1>
+
+          {/* Sidebar Toggle Button */}
+          <button
+            onClick={toggleSidebar}
+            className="absolute top-4 right-4 p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            ☰
+          </button>
+
           {/* Navigation Menu */}
           <nav className="space-y-2 flex-1 mt-6">
             {[
               { id: "dashboard", icon: <FaTachometerAlt />, label: "Dashboard" },
               { id: "adminProfile", icon: <FaUser />, label: "Admin Profile" },
+              { id: "requestsPending", icon: <FaClipboardList />, label: "Requests Pending" },
               { id: "bookings", icon: <FaTicketAlt />, label: "My Bookings" },
               { id: "payments", icon: <FaCreditCard />, label: "Payment History" },
               { id: "alerts", icon: <FaBell />, label: "Parking Alerts" },
@@ -77,25 +95,19 @@ const Home = () => {
               className="w-full bg-red-600 text-white p-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
             >
               <FaSignOutAlt className="w-6 h-6 mr-2" />
-              Logout
+              {isSidebarOpen && "Logout"}
             </button>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className={`p-6 transition-all ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-        {/* Sidebar Toggle Button */}
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="fixed top-4 left-4 p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors z-50"
-        >
-          <FaBars className="text-yellow-400" />
-        </button>
-
+      <div className={`p-6 transition-all ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
         {/* Render Different Components Based on Active Menu Item */}
         {activeMenuItem === "adminProfile" ? (
           <AdminProfile />
+        ) : activeMenuItem === "requestsPending" ? (
+          <PendingRequests />
         ) : (
           <>
             {/* Top Navigation */}
@@ -118,19 +130,8 @@ const Home = () => {
                   className="flex items-center space-x-3 bg-gray-800 p-2 rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   <img src={batmanlogo} alt="Profile" className="w-8 h-8 rounded-full" />
-                  <span className="font-medium">Bruce Wayne</span>
-                  <FaChevronDown />
+                  {isSidebarOpen && <span className="font-medium">Bruce Wayne</span>}
                 </button>
-                {showProfileDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-                    <button className="block w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors">
-                      View Profile
-                    </button>
-                    <button className="block w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors">
-                      Settings
-                    </button>
-                  </div>
-                )}
               </div>
             </header>
 
