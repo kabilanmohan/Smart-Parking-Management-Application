@@ -5,7 +5,7 @@ const PaymentSummary = ({ amount }) => {
   const formattedAmount = typeof amount === "number" ? amount.toFixed(2) : "0.00";
 
   return (
-    <div className="bg-blue-950 rounded-lg shadow-lg p-6 text-center mt-6">
+    <div style={{ backgroundColor: "#0A0F1C" }} className="rounded-lg shadow-lg p-6 text-center mt-6">
       <h3 className="text-xl font-bold mb-4">Payment Summary</h3>
       <p>
         <strong>Total Amount:</strong> ${formattedAmount}
