@@ -11,14 +11,14 @@ import {
 } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDe6y6m73axNAjBfMxaY-BiP9vy0Qtt_so",
-  authDomain: "smart-parking-applicatio-566ed.firebaseapp.com",
-  projectId: "smart-parking-applicatio-566ed",
-  storageBucket: "smart-parking-applicatio-566ed.firebasestorage.app",
-  messagingSenderId: "924586559087",
-  appId: "1:924586559087:web:86cc158807866fe49e2f9a",
-  measurementId: "G-PZ7KT7F4RC"
-};
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+}
 
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
