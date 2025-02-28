@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { db } from "../../temp"; 
 import { doc, getDoc } from "firebase/firestore";
 import gcar from "../assets/g_car.png";
 import rcar from "../assets/r_car.png";
 import gscooter from "../assets/g_scooter.png";
-import rscooter from "../assets/r_scooter.png"
-import { useNavigate } from "react-router-dom";
+import rscooter from "../assets/r_scooter.png";
+
 
 const ParkingLot = () => {
   const location = useLocation();
@@ -32,12 +32,6 @@ const ParkingLot = () => {
     fetchParkingData();
   }, []);
 
-  // Determine total slots based on Firestore data
-  const totalSlots =
-    parkingData?.levels[selectedLevel]?.grid.reduce(
-      (sum, row) => sum + row.cols.length,
-      0
-    ) || 50;
 
   // Handle slot selection
   const handleSlotSelection = (row, col, isAvailable) => {
