@@ -34,33 +34,36 @@ const TransactionHistory = () => {
   }, []);
 
   return (
-    <div className="bg-blue-950 rounded-lg shadow-lg p-6">
+    <div style={{ backgroundColor: "#0A0F1C" }} className="rounded-lg shadow-lg p-6 text-center mt-6">
       <h2 className="text-2xl font-bold text-center mb-6">Transaction History</h2>
       {loading ? (
         <p>Loading transactions...</p>
       ) : transactions.length === 0 ? (
         <p>No transactions found.</p>
       ) : (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-blue-700 text-white">
-              <th className="p-3">Name</th>
-              <th className="p-3">Card Number</th>
-              <th className="p-3">Amount</th>
-              <th className="p-3">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((txn) => (
-              <tr key={txn.id} className="border-b border-gray-700">
-                <td className="p-3">{txn.name}</td>
-                <td className="p-3">{txn.cardNumber}</td>
-                <td className="p-3">${txn.amount.toFixed(2)}</td>
-                <td className="p-3">{txn.date.toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <table className="w-full border-collapse overflow-hidden rounded-lg">
+  <thead className="bg-[#101828] text-white rounded-lg">
+    <tr>
+      <th className="p-3 first:rounded-tl-lg first:rounded-bl-lg last:rounded-tr-lg last:rounded-br-lg">
+        Name
+      </th>
+      <th className="p-3">Card Number</th>
+      <th className="p-3">Amount</th>
+      <th className="p-3 first:rounded-bl-lg last:rounded-br-lg">Date</th>
+    </tr>
+  </thead>
+  <tbody className="bg-[#0A0F1C] text-white">
+    {transactions.map((txn) => (
+      <tr key={txn.id} className="border-b border-gray-700 last:rounded-lg">
+        <td className="p-3">{txn.name}</td>
+        <td className="p-3">{txn.cardNumber}</td>
+        <td className="p-3">${txn.amount.toFixed(2)}</td>
+        <td className="p-3">{txn.date.toLocaleString()}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
       )}
     </div>
   );

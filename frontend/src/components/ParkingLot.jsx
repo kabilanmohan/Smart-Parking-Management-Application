@@ -77,7 +77,7 @@ const ParkingLot = () => {
             }`}
           >
             {selectedSlot
-              ? `Confirm Booking ($${parkingData.levels[selectedLevel].prices[selectedSlot.row].cols[selectedSlot.col]})`
+              ? `Confirm Booking ($${parkingData.levels[selectedLevel]?.prices[selectedSlot.row]?.cols?.[selectedSlot.col] || 0})`
               : "Confirm Booking"}
           </button>
         </div>
@@ -85,7 +85,7 @@ const ParkingLot = () => {
 
 
       {/* Parking Grid */}
-      {parkingData && parkingData.levels[selectedLevel] ? (
+      {parkingData?.levels?.[selectedLevel] ? (
         <div
     className="grid border-white border-4 p-4 mt-10 gap-10"
     style={{
@@ -96,7 +96,7 @@ const ParkingLot = () => {
             row.cols.map((slot, colIndex) => {
               const isAvailable = parkingData.levels[selectedLevel].availability[rowIndex].cols[colIndex];
               return (
-                <div
+                <button
                   key={`${rowIndex}-${colIndex}`}
                   onClick={() => handleSlotSelection(rowIndex, colIndex, isAvailable)}
                   className={`w-20 h-32 flex flex-col items-center justify-center text-white font-bold rounded-md cursor-pointer transition 
@@ -128,7 +128,7 @@ const ParkingLot = () => {
           
                     </>
                   )}
-                </div>
+                </button>
 
               );
             })
