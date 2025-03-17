@@ -41,19 +41,19 @@ const ParkingLot = () => {
   };
 
   return (
-    <div className="flex flex-col items-center bg-[#1a1a1a] min-h-screen p-5">
+    <div className="flex flex-col items-center bg-[#F9FAFB] min-h-screen p-5">
       {/* Sticky Bar */}
-      <div className="sticky top-0 left-0 w-full bg-[#1a1a1a] p-5 flex flex-col items-center z-50">
-        <h2 className="text-white text-2xl font-bold">{selectedSpot.name || "Parking Lot"}</h2>
-        <p className="text-gray-400">{selectedSpot.address || "Unknown Address"}</p>
+      <div className="sticky top-0 left-0 w-full bg-[#FFFFFF] p-5 flex flex-col items-center z-50">
+        <h2 className="text-[#EF4444] text-2xl font-bold">{selectedSpot.name || "Parking Lot"}</h2>
+        <p className="text-[#1F2937] font-bold">{selectedSpot.address || "Unknown Address"}</p>
         <div className="flex space-x-6 mt-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-green-500 border-2 border-green-500 rounded"></div>
-          <span className="text-white">Vacant</span>
+          <span className="text-[#1F2937] font-bold">Vacant</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-red-500 border-2 border-red-500 rounded"></div>
-          <span className="text-white">Occupied</span>
+          <span className="text-[#1F2937] font-bold">Occupied</span>
         </div>
         </div>
         {/* Level Selection & Confirm Booking */}
