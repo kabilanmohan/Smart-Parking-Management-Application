@@ -1,8 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import batmanlogo from "../assets/batman-logo.jpg";
+import { auth } from "../firebase";
 
 const LandingPage = () => {
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
+
+  const handleEnterClick = () => {
+    // Check if user is logged in
+    if (auth.currentUser) {
+      // If logged in, go to dashboard
+      navigate("/dashboard");
+    } else {
+      // If not logged in, go to login page
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
@@ -26,7 +38,7 @@ const LandingPage = () => {
         {/* Button to navigate to the App */}
         <button
           className="px-6 py-3 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-600 transition duration-300"
-          onClick={() => navigate("/dashboard")} // Navigate to /dashboard
+          onClick={handleEnterClick} // Use the new handler
         >
           Enter the Batcave
         </button>
