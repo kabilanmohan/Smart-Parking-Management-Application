@@ -8,6 +8,9 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import batmanParkingImage from "../assets/batman-parking2.jpeg";
+import { FaGoogle, FaApple, FaFacebook, FaUser, FaPhone, FaCar, FaCogs, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaParking, FaCarSide, FaCarAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,6 +20,9 @@ const Auth = () => {
     password: '',
     rememberMe: false,
     name: '',
+    phoneNumber: '',
+    vehicleNumber: '',
+    vehicleType: 'car',
   });
   const [message, setMessage] = useState('');
 
@@ -29,7 +35,7 @@ const Auth = () => {
     }));
   };
 
-  // Handle form submission
+  // Handle form submission with Firestore
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -37,26 +43,86 @@ const Auth = () => {
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
         setMessage("Login successful! Redirecting...");
       } else {
-        await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        setMessage("Account created! Redirecting...");
+        // Create the user in Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(
+          auth, 
+          formData.email, 
+          formData.password
+        );
+        
+        // Create a user document in Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          name: formData.name,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber || '',
+          vehicleNumber: formData.vehicleNumber || '',
+          vehicleType: formData.vehicleType || 'car',
+          role: 'customer', // Default role for new users
+          createdAt: new Date(),
+          paymentMethods: [],
+          favoriteSpots: [],
+          bookingHistory: [],
+          notificationPreferences: {
+            email: true,
+            push: true,
+          }
+        });
+        
+        setMessage("Account created successfully! Redirecting...");
       }
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
+      console.error("Error:", error);
       setMessage(error.message);
     }
   };
 
   // Handle Google sign-in
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      setMessage("Google sign-in successful! Redirecting...");
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage(error.message);
+// Update the handleGoogleSignIn function
+const handleGoogleSignIn = async () => {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    
+    // Check if this is a new user
+    const userDocRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userDocRef);
+    
+    if (userSnap.exists()) {
+      // If user already exists, just update lastLogin
+      await updateDoc(userDocRef, {
+        lastLogin: new Date(),
+      });
+    } else {
+      // Only create a new document if user doesn't exist
+      await setDoc(userDocRef, {
+        name: user.displayName || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        profileImageUrl: user.photoURL || '',
+        role: 'customer',
+        createdAt: new Date(),
+        lastLogin: new Date(),
+        vehicleNumber: '',
+        vehicleType: 'car',
+        paymentMethods: [],
+        favoriteSpots: [],
+        bookingHistory: [],
+        notificationPreferences: {
+          email: true,
+          push: true,
+        }
+      });
     }
-  };
+    
+    setMessage("Google sign-in successful! Redirecting...");
+    setTimeout(() => setMessage(''), 3000);
+  } catch (error) {
+    console.error("Error during Google Sign-In:", error);
+    setMessage(error.message);
+  }
+};
 
   // Handle forgot password
   const handleForgotPassword = async () => {
@@ -73,164 +139,240 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1C] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Design Elements */}
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#ffffff] to-[#C94B4B] opacity-30 blur-2xl"></div>
+      <div className="absolute top-1/2 -translate-y-1/2 left-10 text-[#E5E7EB] opacity-10">
+        <FaParking className="w-24 h-24 mb-10" />
+        <FaCarSide className="w-16 h-16 mb-10 ml-16" />
+        <FaMapMarkerAlt className="w-12 h-12 ml-8" />
+      </div>
+      <div className="absolute top-1/2 -translate-y-1/2 right-10 text-[#E5E7EB] opacity-10">
+        <FaCarAlt className="w-16 h-16 mb-10 mr-12" />
+        <FaParking className="w-20 h-20 mb-10" />
+        <FaMapMarkerAlt className="w-12 h-12 mr-8" />
+      </div>
+
       {/* Main Container */}
-      <div className="w-full max-w-[1440px] h-[90vh] flex shadow-2xl rounded-2xl overflow-hidden">
+      <div className="w-full max-w-[1200px] h-auto md:h-[85vh] flex flex-col md:flex-row shadow-2xl rounded-2xl overflow-hidden bg-white relative z-10">
         {/* Left Hero Section */}
-          <div className="hidden md:block w-1/2 relative overflow-hidden">
-            <img
-              src={batmanParkingImage}
-              alt="Smart Parking"
-              className="absolute inset-0 w-full h-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0A0F1C]/80 to-transparent p-12 flex flex-col justify-between">
-              <div className="text-white">
-                <h1 className="text-4xl font-extrabold mb-4">GOTHAM PARKING</h1>
-                <p className="text-xl text-gray-300 font-light">The Dark Knight&apos;s Parking Solution</p>
+        <div className="hidden md:block md:w-1/2 relative overflow-hidden">
+          <img
+            src={batmanParkingImage}
+            alt="Smart Parking"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1F2937]/90 to-transparent p-12 flex flex-col justify-between">
+            <div className="text-white">
+              <h1 className="text-4xl font-extrabold mb-4">VINTAGE PARKING</h1>
+              <p className="text-xl text-gray-300 font-light">Smart Parking Solutions</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center text-white opacity-90">
+                <div className="bg-white/20 p-2 rounded-full mr-3">
+                  <FaMapMarkerAlt className="w-4 h-4" />
+                </div>
+                <p>Find the perfect spot in seconds</p>
               </div>
-              {/* <div className="space-y-3">
-                <div className="flex items-center space-x-4 text-white">
-            <i className="fas fa-shield-alt text-2xl text-[#00F0FF]"></i>
-            <div>
-              <h3 className="text-xl font-semibold">Secure Access</h3>
-              <p className="text-gray-300">Advanced encryption for your safety</p>
-            </div>
+              <div className="flex items-center text-white opacity-90">
+                <div className="bg-white/20 p-2 rounded-full mr-3">
+                  <FaCarAlt className="w-4 h-4" />
                 </div>
-                <div className="flex items-center space-x-4 text-white">
-            <i className="fas fa-mobile-alt text-2xl text-[#00F0FF]"></i>
-            <div>
-              <h3 className="text-xl font-semibold">Smart Control</h3>
-              <p className="text-gray-300">Manage parking from your phone</p>
-            </div>
+                <p>Secure parking for your vehicle</p>
+              </div>
+              <div className="flex items-center text-white opacity-90">
+                <div className="bg-white/20 p-2 rounded-full mr-3">
+                  <FaCogs className="w-4 h-4" />
                 </div>
-                <div className="flex items-center space-x-4 text-white">
-            <i className="fas fa-clock text-2xl text-[#00F0FF]"></i>
-            <div>
-              <h3 className="text-xl font-semibold">Real-time Updates</h3>
-              <p className="text-gray-300">Instant notifications and status</p>
+                <p>Smart management system</p>
+              </div>
             </div>
-                </div>
-              </div> */}
           </div>
         </div>
 
         {/* Right Auth Section */}
-        <div className="w-full md:w-1/2 bg-[#0A0F1C] p-6 md:p-12 flex flex-col justify-center">
+        <div className="w-full md:w-1/2 bg-white p-6 md:p-10 flex flex-col justify-center">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Welcome to Vintage Parking</h2>
+            <p className="text-[#4B5563]">Access the future of smart parking solutions</p>
+          </div>
+
           <div className="mb-8 flex justify-center">
-            <div className="bg-[#1A1F2C] rounded-full p-1">
+            <div className="bg-[#F9FAFB] rounded-full p-1 shadow-sm">
               <button
-                className={`px-6 py-2 rounded-full transition-all duration-300 ${isLogin ? 'bg-[#2E6FFF] text-white' : 'text-gray-400'}`}
+                className={`px-6 py-2 rounded-full transition-all duration-300 ${isLogin ? 'bg-[#C94B4B] text-white' : 'text-[#4B5563]'}`}
                 onClick={() => setIsLogin(true)}
               >
                 Sign In
               </button>
               <button
-                className={`px-6 py-2 rounded-full transition-all duration-300 ${!isLogin ? 'bg-[#2E6FFF] text-white' : 'text-gray-400'}`}
+                className={`px-6 py-2 rounded-full transition-all duration-300 ${!isLogin ? 'bg-[#C94B4B] text-white' : 'text-[#4B5563]'}`}
                 onClick={() => setIsLogin(false)}
               >
                 Sign Up
               </button>
             </div>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && (
+
+          <div className="max-w-md mx-auto w-full"> {/* Make form area narrower */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
+                <>
+                  <div className="relative">
+                    <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#F9FAFB] text-[#1F2937] px-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                      placeholder="Full Name"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#F9FAFB] text-[#1F2937] px-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                      placeholder="Phone Number"
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <FaCar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                    <input
+                      type="text"
+                      name="vehicleNumber"
+                      value={formData.vehicleNumber}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#F9FAFB] text-[#1F2937] px-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                      placeholder="Vehicle Number (e.g., ABC-123)"
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <FaCogs className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                    <select
+                      name="vehicleType"
+                      value={formData.vehicleType}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#F9FAFB] text-[#1F2937] px-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB] appearance-none"
+                    >
+                      <option value="car">Car</option>
+                      <option value="bike">Motorcycle/Scooter</option>
+                      <option value="van">Van/SUV</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
               <div className="relative">
+                <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
                 <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
+                  type="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full bg-[#1A1F2C] text-white px-12 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6FFF] transition-all"
-                  placeholder="Full Name"
+                  className="w-full bg-[#F9FAFB] text-[#1F2937] px-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                  placeholder="Email Address"
                   required
                 />
-                <i className="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               </div>
-            )}
-
-            <div className="relative">
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full bg-[#1A1F2C] text-white px-12 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6FFF] transition-all"
-                placeholder="Email Address"
-                required
-              />
-              <i className="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            </div>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full bg-[#1A1F2C] text-white px-12 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6FFF] transition-all"
-                placeholder="Password"
-                required
-              />
-              <i className="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              <div className="relative">
+                <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#F9FAFB] text-[#1F2937] px-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                  placeholder="Password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#4B5563] hover:text-[#C94B4B] transition-colors"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {isLogin && (
+                <div className="flex items-center justify-between text-[#4B5563]">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="rememberMe"
+                      checked={formData.rememberMe}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 rounded border-[#E5E7EB] text-[#C94B4B] focus:ring-[#C94B4B]"
+                    />
+                    <span>Remember me</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-[#C94B4B] hover:text-[#C94B4B]/80 transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                type="submit"
+                className="w-full bg-[#C94B4B] hover:bg-[#C94B4B]/90 text-white py-3 rounded-lg font-semibold transition-colors"
               >
-                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                {isLogin ? 'Sign In' : 'Create Account'}
               </button>
-            </div>
-            {isLogin && (
-              <div className="flex items-center justify-between text-gray-400">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 rounded border-gray-600 text-[#2E6FFF] focus:ring-[#2E6FFF]"
-                  />
-                  <span>Remember me</span>
-                </label>
+              <div className="relative text-center my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#E5E7EB]"></div>
+                </div>
+                <span className="relative px-4 bg-white text-[#4B5563]">Or continue with</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={handleForgotPassword}
-                  className="text-[#2E6FFF] hover:text-[#00F0FF] transition-colors"
+                  onClick={handleGoogleSignIn}
+                  className="flex items-center justify-center space-x-2 bg-[#F9FAFB] text-[#1F2937] py-2 rounded-lg hover:bg-[#DBEAFE] transition-colors border border-[#E5E7EB]"
                 >
-                  Forgot Password?
+                  <FaGoogle className="text-[#C94B4B]" />
+                  <span>Google</span>
                 </button>
+                <button
+                  type="button"
+                  className="flex items-center justify-center space-x-2 bg-[#F9FAFB] text-[#1F2937] py-2 rounded-lg hover:bg-[#DBEAFE] transition-colors border border-[#E5E7EB]"
+                >
+                  <FaApple className="text-[#1F2937]" />
+                  <span>Apple</span>
+                </button>
+                <button
+                  type="button"
+                  className="flex items-center justify-center space-x-2 bg-[#F9FAFB] text-[#1F2937] py-2 rounded-lg hover:bg-[#DBEAFE] transition-colors border border-[#E5E7EB]"
+                >
+                  <FaFacebook className="text-[#3B82F6]" />
+                  <span>Facebook</span>
+                </button>
+              </div>
+            </form>
+            {message && (
+              <div className={`mt-4 p-3 rounded-lg ${
+                message.includes('success') ? 'bg-[#D1FAE5] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
+              }`}>
+                <p className="text-center text-sm">{message}</p>
               </div>
             )}
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-[#2E6FFF] to-[#00F0FF] text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-            >
-              {isLogin ? 'Sign In' : 'Create Account'}
-            </button>
-            <div className="relative text-center my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700"></div>
-              </div>
-              <span className="relative px-4 bg-[#0A0F1C] text-gray-400">Or continue with</span>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {['Google', 'Apple', 'Facebook'].map((provider) => (
-                <button
-                  key={provider}
-                  type="button"
-                  onClick={provider === 'Google' ? handleGoogleSignIn : null}
-                  className="flex items-center justify-center space-x-2 bg-[#1A1F2C] text-white py-3 rounded-lg hover:bg-[#2A2F3C] transition-colors"
-                >
-                  <i className={`fab fa-${provider.toLowerCase()}`}></i>
-                  <span>{provider}</span>
-                </button>
-              ))}
-            </div>
-          </form>
-          {message && (
-            <p className={`mt-4 text-center text-sm ${message.includes('success') ? 'text-green-500' : 'text-red-500'}`}>
-              {message}
-            </p>
-          )}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-8 text-center text-[#4B5563] text-sm">
+            <p>&copy; 2025 Vintage Parking. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </div>
