@@ -1,1 +1,32 @@
 @import 'tailwindcss';
+/* In your global CSS file or index.css */
+:root {
+    --primary-color: #C94B4B;
+    --primary-hover: #A83A3A;
+  }
+  
+  /* Global custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #F9FAFB;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+  }
+  
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #F9FAFB;
+  }
+  

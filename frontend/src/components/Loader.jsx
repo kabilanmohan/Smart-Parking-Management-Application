@@ -1,11 +1,13 @@
+import PropTypes from 'prop-types';
+
 const Loader = ({ text = "Loading..." }) => {
-    return (
-      <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center font-['Proxima_Nova','Roboto',sans-serif]">
-        <div className="loader mb-6"></div>
-        <p className="text-black text-xl">{text}</p>
-        
-        <style jsx>{`
-          .loader {
+  return (
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center font-['Proxima_Nova','Roboto',sans-serif]">
+      <div className="loader mb-6"></div>
+      <p className="text-black text-xl">{text}</p>
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        .loader {
           position: relative;
           width: 78px;
           height: 78px;
@@ -23,7 +25,7 @@ const Loader = ({ text = "Loading..." }) => {
           top: -50%;
           width: 100%;
           height: 100%;
-          background: #263238 ;
+          background: #263238;
           z-index: 5;
           border-bottom: 8px solid #131a1d;
           box-sizing: border-box;
@@ -44,22 +46,32 @@ const Loader = ({ text = "Loading..." }) => {
         @keyframes eyeShade {
           0%   { transform: translateY(0)}
           20%   { transform: translateY(5px)}
-          40% , 50%   { transform: translateY(-5px)}
-          60%   { transform: translateY( -8px)}
-          75%   { transform: translateY( 5px)}
+          40%, 50%   { transform: translateY(-5px)}
+          60%   { transform: translateY(-8px)}
+          75%   { transform: translateY(5px)}
           100%   { transform: translateY(10px)}
         }
         @keyframes eyeMove {
-          0%   { transform: translate(0 , 0)}
-          20%   { transform: translate(0px , 5px)}
-          40% , 50%   { transform: translate(0px , -5px)}
-          60%   { transform: translate(-10px , -5px)}
-          75%   { transform: translate(-20px , 5px)}
-          100%   { transform: translate(0 , 10px)}
+          0%   { transform: translate(0, 0)}
+          20%   { transform: translate(0px, 5px)}
+          40%, 50%   { transform: translate(0px, -5px)}
+          60%   { transform: translate(-10px, -5px)}
+          75%   { transform: translate(-20px, 5px)}
+          100%   { transform: translate(0, 10px)}
         }
-        `}</style>
-      </div>
-    );
-  };
-  
-  export default Loader;
+      `}} />
+    </div>
+  );
+};
+
+// Add prop types validation
+Loader.propTypes = {
+  text: PropTypes.string
+};
+
+// Add default props (even though we already have default parameter)
+Loader.defaultProps = {
+  text: "Loading..."
+};
+
+export default Loader;

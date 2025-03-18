@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaPhone, FaCar, FaCogs, FaEnvelope, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import Loader from "./Loader"; // Import the Loader component
+import PropTypes from 'prop-types'; // Import PropTypes
 
 const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, inDashboard = false }) => {
   const navigate = useNavigate();
@@ -18,32 +19,16 @@ const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, i
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    if (propUserData) {
-      console.log("Received prop user data:", propUserData);
-      setLocalUserData(propUserData);
-      setFormData({
-        name: propUserData.name || "",
-        phoneNumber: propUserData.phoneNumber || "",
-        vehicleNumber: propUserData.vehicleNumber || "",
-        vehicleType: propUserData.vehicleType || "car",
-      });
-      setLoading(false);
-    } else {
-      fetchUserData();
-    }
-  }, [propUserData]);
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!auth.currentUser) {
       navigate("/");
       return;
     }
-
+  
     try {
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       const userDoc = await getDoc(userDocRef);
-
+  
       if (userDoc.exists()) {
         const data = userDoc.data();
         console.log("Fetched user data:", data);
@@ -63,7 +48,23 @@ const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, i
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]); // navigate as a dependency
+
+  useEffect(() => {
+    if (propUserData) {
+      console.log("Received prop user data:", propUserData);
+      setLocalUserData(propUserData);
+      setFormData({
+        name: propUserData.name || "",
+        phoneNumber: propUserData.phoneNumber || "",
+        vehicleNumber: propUserData.vehicleNumber || "",
+        vehicleType: propUserData.vehicleType || "car",
+      });
+      setLoading(false);
+    } else {
+      fetchUserData();
+    }
+  }, [propUserData, fetchUserData]); // fetchUserData instead of navigate
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -132,35 +133,35 @@ const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, i
           <div className="loader mb-6"></div>
           <p className="text-black text-xl font-['Proxima_Nova','Roboto',sans-serif]">Loading user profile...</p>
           
-          <style jsx>{`
-            .loader {
-              position: relative;
-              width: 48px;
-              height: 48px;
-              background: #c94b4b;
-              transform: rotateX(65deg) rotate(45deg);
-              color: #fff;
-              animation: layers1 1s linear infinite alternate;
-            }
-            
-            .loader:after {
-              content: '';
-              position: absolute;
-              inset: 0;
-              background: rgba(255, 255, 255, 0.7);
-              animation: layerTr 1s linear infinite alternate;
-            }
+          <style dangerouslySetInnerHTML={{__html: `
+          .loader {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            background: #c94b4b;
+            transform: rotateX(65deg) rotate(45deg);
+            color: #fff;
+            animation: layers1 1s linear infinite alternate;
+          }
+          
+          .loader:after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            animation: layerTr 1s linear infinite alternate;
+          }
 
-            @keyframes layers1 {
-              0% { box-shadow: 0px 0px 0 0px  }
-              90%, 100% { box-shadow: 20px 20px 0 -4px  }
-            }
-            
-            @keyframes layerTr {
-              0% { transform: translate(0, 0) scale(1) }
-              100% { transform: translate(-25px, -25px) scale(1) }
-            }
-          `}</style>
+          @keyframes layers1 {
+            0% { box-shadow: 0px 0px 0 0px  }
+            90%, 100% { box-shadow: 20px 20px 0 -4px  }
+          }
+          
+          @keyframes layerTr {
+            0% { transform: translate(0, 0) scale(1) }
+            100% { transform: translate(-25px, -25px) scale(1) }
+          }
+        `}} />
         </div>
       </div>
     ) : (
@@ -337,13 +338,35 @@ const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, i
       </div>
       
       {/* Add custom style for consistent font application */}
-      <style jsx>{`
+      {/* Replace style jsx with dangerouslySetInnerHTML */}
+      <style dangerouslySetInnerHTML={{__html: `
         * {
           font-family: 'Proxima Nova', 'Roboto', sans-serif;
         }
-      `}</style>
+      `}} />
     </div>
   );
+};
+
+// Add PropTypes validation
+UserProfile.propTypes = {
+  userData: PropTypes.shape({
+    name: PropTypes.string,
+    email: PropTypes.string,
+    phoneNumber: PropTypes.string,
+    vehicleNumber: PropTypes.string,
+    vehicleType: PropTypes.string,
+    profileImageUrl: PropTypes.string,
+  }),
+  setUserData: PropTypes.func,
+  inDashboard: PropTypes.bool
+};
+
+// Add default props
+UserProfile.defaultProps = {
+  userData: null,
+  setUserData: null,
+  inDashboard: false
 };
 
 export default UserProfile;
