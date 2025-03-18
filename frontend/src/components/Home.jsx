@@ -8,6 +8,7 @@ import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
 import Loader from "./Loader"; // Import the Loader component
+import ParkingSpaceDetails from './ParkingSpaceDetails'; // Import the new component
 
 const containerStyle = {
   width: "100%",
@@ -57,6 +58,7 @@ const Home = () => {
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [detailSpace, setDetailSpace] = useState(null); // Add a new state to track which space is being viewed in detail
 
   // Add a key for the Google Map component to force proper re-rendering
   const [mapKey, setMapKey] = useState(Date.now());
@@ -142,7 +144,7 @@ const Home = () => {
           price: `$${data.pricing.car}/hour`,
           spots: data.TotalSlots,
           distance: "0.3 miles",
-          rating: data.rating,
+          rating: data.averageRating,
           levels: data.levels,
           pricing: data.pricing,
         });
@@ -319,16 +321,32 @@ const Home = () => {
                               <p className="text-sm mb-2">Pricing: Car - ${selectedSpace.pricing.car}/hr, Bike - ${selectedSpace.pricing.bike}/hr</p>
                               <div className="flex space-x-2">
                                 <button
-                                  onClick={() => handleDirectionsClick(selectedSpace)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDirectionsClick(selectedSpace);
+                                  }}
                                   className="bg-[#3B82F6] text-white px-3 py-1 rounded text-sm hover:bg-[#2563EB] transition-colors"
                                 >
                                   Directions
                                 </button>
                                 <button
-                                  onClick={() => handleBookNowClick(selectedSpace)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBookNowClick(selectedSpace);
+                                  }}
                                   className="bg-[#C94B4B] text-white px-3 py-1 rounded text-sm hover:bg-[#C94B4B]/80 transition-colors"
                                 >
                                   Book Now
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailSpace(selectedSpace);
+                                    setSelectedSpace(null); // Close the InfoWindow when showing details
+                                  }}
+                                  className="bg-[#10B981] text-white px-3 py-1 rounded text-sm hover:bg-[#059669] transition-colors"
+                                >
+                                  More Info
                                 </button>
                               </div>
                             </div>
@@ -340,57 +358,84 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Right Column - Nearby Spots and Favorites */}
+              {/* Right Column - Detailed Parking Space or Lists */}
               <div className="lg:col-span-1">
-                {/* Nearby Spots */}
-                <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-[#E5E7EB] hover:shadow-md transition-shadow">
-                  <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Nearby Spots</h2>
-                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {parkingSpaces.slice(0, 3).map((spot) => (
-                      <div
-                        key={spot.id}
-                        className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
-                      >
-                        <div className="mb-3 md:mb-0">
-                          <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
-                          <p className="text-sm text-[#4B5563]">{spot.address}</p>
-                          <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
-                        </div>
-                        <button 
-                          onClick={() => handleBookNowClick(spot)} 
-                          className="bg-[#C94B4B] text-white px-4 py-2 rounded-lg hover:bg-[#C94B4B]/80 transition-colors w-full md:w-auto"
-                        >
-                          Book Now
-                        </button>
+                {detailSpace ? (
+                  <ParkingSpaceDetails 
+                    space={detailSpace}
+                    onClose={() => setDetailSpace(null)}
+                    onBookNow={handleBookNowClick}
+                    onDirections={handleDirectionsClick}
+                  />
+                ) : (
+                  <>
+                    {/* Nearby Spots */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-[#E5E7EB] hover:shadow-md transition-shadow">
+                      <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Nearby Spots</h2>
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {parkingSpaces.slice(0, 3).map((spot) => (
+                          <div
+                            key={spot.id}
+                            className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
+                          >
+                            <div className="mb-3 md:mb-0">
+                              <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
+                              <p className="text-sm text-[#4B5563]">{spot.address}</p>
+                              <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                              <button 
+                                onClick={() => handleBookNowClick(spot)} 
+                                className="bg-[#C94B4B] text-white px-3 py-1 rounded text-sm hover:bg-[#C94B4B]/80 transition-colors"
+                              >
+                                Book Now
+                              </button>
+                              <button 
+                                onClick={() => setDetailSpace(spot)} 
+                                className="bg-[#10B981] text-white px-3 py-1 rounded text-sm hover:bg-[#059669] transition-colors"
+                              >
+                                More Info
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Favorite Spots */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
-                  <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Favorite Spots</h2>
-                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {parkingSpaces.slice(0, 3).map((spot) => (
-                      <div
-                        key={spot.id}
-                        className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
-                      >
-                        <div className="mb-3 md:mb-0">
-                          <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
-                          <p className="text-sm text-[#4B5563]">{spot.address}</p>
-                          <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
-                        </div>
-                        <button 
-                          onClick={() => handleBookNowClick(spot)} 
-                          className="bg-[#C94B4B] text-white px-4 py-2 rounded-lg hover:bg-[#C94B4B]/80 transition-colors w-full md:w-auto"
-                        >
-                          Book Now
-                        </button>
+                    {/* Favorite Spots */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
+                      <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Favorite Spots</h2>
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {parkingSpaces.slice(0, 3).map((spot) => (
+                          <div
+                            key={spot.id}
+                            className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
+                          >
+                            <div className="mb-3 md:mb-0">
+                              <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
+                              <p className="text-sm text-[#4B5563]">{spot.address}</p>
+                              <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                              <button 
+                                onClick={() => handleBookNowClick(spot)} 
+                                className="bg-[#C94B4B] text-white px-3 py-1 rounded text-sm hover:bg-[#C94B4B]/80 transition-colors"
+                              >
+                                Book Now
+                              </button>
+                              <button 
+                                onClick={() => setDetailSpace(spot)} 
+                                className="bg-[#10B981] text-white px-3 py-1 rounded text-sm hover:bg-[#059669] transition-colors"
+                              >
+                                More Info
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </>
