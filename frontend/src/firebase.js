@@ -9,6 +9,7 @@ import {
   where, 
   serverTimestamp 
 } from "firebase/firestore";
+import { getStorage } from "firebase/storage"; // Add this import
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,4 +26,5 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); // Add this export
 export { collection, addDoc, getDocs, query, where, serverTimestamp };
