@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import batmanlogosvg from "../assets/batmanlogosvg.svg";
 import { auth } from "../firebase";
-import { FaParking, FaClock, FaMapMarkerAlt, FaShieldAlt, FaMobileAlt, FaMoneyBillWave } from "react-icons/fa";
+import { FaParking, FaClock, FaMapMarkerAlt, FaShieldAlt, FaMobileAlt } from "react-icons/fa";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -101,7 +101,7 @@ const LandingPage = () => {
               <FaShieldAlt className="text-4xl text-[#C94B4B] mb-4" />
               <h3 className="text-2xl font-bold mb-4">Secure & Protected</h3>
               <p className="text-[#4B5563] mb-4">
-                24/7 surveillance and regular security patrols ensure your vehicle's safety
+                24/7 surveillance and regular security patrols ensure your vehicle s safety
               </p>
             </div>
             

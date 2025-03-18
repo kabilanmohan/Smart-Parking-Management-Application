@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
-import PaymentSummary from "./PaymentSummary";
 import PropTypes from 'prop-types';
 
 const PaymentForm = ({ onPaymentSuccess }) => {

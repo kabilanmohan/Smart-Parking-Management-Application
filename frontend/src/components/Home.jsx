@@ -8,7 +8,6 @@ import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
 import Loader from "./Loader"; // Import the Loader component
-import PaymentHistory from "./PaymentHistory"; // Correct import for PaymentHistory component
 import ParkingSpaceDetails from './ParkingSpaceDetails'; // Import the new component
 
 const containerStyle = {

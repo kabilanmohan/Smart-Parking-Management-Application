@@ -99,7 +99,7 @@ router.post('/submit-complaint', upload.single('image'), async (req, res) => {
 
     // If it's a parking spot complaint, get the parking spot details
     let parkingSpotData = null;
-    if (parkingSpotId) {
+    if (parkingSpotId && parkingSpotId.trim() !== '') {
       const parkingSpotRef = doc(db, 'ParkingSpaces', parkingSpotId);
       const parkingSpotSnap = await getDoc(parkingSpotRef);
       if (parkingSpotSnap.exists()) {
@@ -121,7 +121,7 @@ router.post('/submit-complaint', upload.single('image'), async (req, res) => {
       }
     }
 
-    // Store complaint in Firestore
+    // Store complaint in Firestore with proper null handling
     const complaintData = {
       userId,
       userEmail,
@@ -129,7 +129,8 @@ router.post('/submit-complaint', upload.single('image'), async (req, res) => {
       subject,
       message,
       category,
-      parkingSpotId,
+      // Only include parkingSpotId if it has a valid value
+      ...(parkingSpotId && parkingSpotId.trim() !== '' ? { parkingSpotId } : {}),
       parkingSpotName: parkingSpotData?.Name || null,
       parkingSpotAddress: parkingSpotData?.Address || null,
       status: 'pending', // pending, in-progress, resolved
@@ -138,8 +139,8 @@ router.post('/submit-complaint', upload.single('image'), async (req, res) => {
       assignedTo: null,
       notes: [],
       // Add image data if uploaded with secure URL
-      imageUrl: imageUrl,
-      imagePublicId: imagePublicId
+      imageUrl: imageUrl || null,
+      imagePublicId: imagePublicId || null
     };
     
     // Add complaint to database
