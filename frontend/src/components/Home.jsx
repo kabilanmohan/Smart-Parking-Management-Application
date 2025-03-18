@@ -526,7 +526,7 @@ const Home = () => {
                     } else if (item.id === "alerts") {
                       navigate("/alerts");
                     } else if (item.id === "support") {
-                      navigate("/support");
+                      navigate("/help-support");
                     } else if (item.id === "dashboard") {
                       // If already in Home component, just reset to dashboard view
                       // Otherwise navigate to home
