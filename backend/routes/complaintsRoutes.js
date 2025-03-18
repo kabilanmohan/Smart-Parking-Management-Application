@@ -26,6 +26,12 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@vintageparking.com';
 // Update the getComplaintEmailTemplate function
 
 function getComplaintEmailTemplate(userData, complaintData, parkingSpotData) {
+  // Ensure image URL uses HTTPS
+  let secureImageUrl = complaintData.imageUrl;
+  if (secureImageUrl && secureImageUrl.startsWith('http:')) {
+    secureImageUrl = secureImageUrl.replace('http:', 'https:');
+  }
+  
   return `
   <!DOCTYPE html>
   <html>
@@ -53,9 +59,9 @@ function getComplaintEmailTemplate(userData, complaintData, parkingSpotData) {
         <p><strong>Complaint ID:</strong> ${complaintData.id}</p>
         <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
         
-        ${complaintData.imageUrl ? `
+        ${secureImageUrl ? `
           <p><strong>Attached Image:</strong></p>
-          <img src="${complaintData.imageUrl}" alt="Complaint Image" class="complaint-image">
+          <img src="${secureImageUrl}" alt="Complaint Image" class="complaint-image">
         ` : ''}
         
         ${parkingSpotData ? `
@@ -101,6 +107,20 @@ router.post('/submit-complaint', upload.single('image'), async (req, res) => {
       }
     }
 
+    // Ensure image URL uses HTTPS if available
+    let imageUrl = null;
+    let imagePublicId = null;
+    
+    if (req.file) {
+      imageUrl = req.file.path;
+      imagePublicId = req.file.filename;
+      
+      // Ensure HTTPS for Cloudinary URLs
+      if (imageUrl && imageUrl.startsWith('http:')) {
+        imageUrl = imageUrl.replace('http:', 'https:');
+      }
+    }
+
     // Store complaint in Firestore
     const complaintData = {
       userId,
@@ -117,9 +137,9 @@ router.post('/submit-complaint', upload.single('image'), async (req, res) => {
       updatedAt: serverTimestamp(),
       assignedTo: null,
       notes: [],
-      // Add image data if uploaded
-      imageUrl: req.file ? req.file.path : null,
-      imagePublicId: req.file ? req.file.filename : null
+      // Add image data if uploaded with secure URL
+      imageUrl: imageUrl,
+      imagePublicId: imagePublicId
     };
     
     // Add complaint to database

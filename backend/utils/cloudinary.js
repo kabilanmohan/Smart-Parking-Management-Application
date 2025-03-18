@@ -7,11 +7,12 @@ import process from 'process';
 // Load environment variables at the beginning
 dotenv.config();
 
-// Configure Cloudinary
+// Configure Cloudinary with secure URLs
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true // This forces Cloudinary to use HTTPS URLs
 });
 
 // Configure storage
@@ -19,7 +20,9 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'smart-parking-complaints',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif']
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
+    // Force HTTPS URLs
+    transformation: [{secure: true}]
   }
 });
 
