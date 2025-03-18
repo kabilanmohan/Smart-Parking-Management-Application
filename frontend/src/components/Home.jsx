@@ -642,53 +642,6 @@ const Home = () => {
             )}
           </div>
         </header>
-
-        {/* Mobile search bar with dropdown */}
-        <div className="md:hidden px-4 pt-16 pb-2 bg-white/95 border-b border-[#E5E7EB] search-container relative">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-3 text-[#4B5563]" />
-            <input
-              type="text"
-              placeholder="Search for parking spots..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6] bg-[#F9FAFB] text-[#1F2937] placeholder-[#4B5563]"
-            />
-            
-            {/* Mobile Search Results Dropdown */}
-            {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute w-full mt-1 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto custom-scrollbar">
-                {searchResults.map((space) => (
-                  <button
-                    key={space.id}
-                    onClick={() => handleSearchResultClick(space)}
-                    className="w-full text-left px-4 py-3 hover:bg-[#DBEAFE] border-b border-[#E5E7EB] last:border-b-0 transition-colors flex items-start"
-                  >
-                    <div>
-                      <div className="font-semibold text-[#1F2937]">{space.name}</div>
-                      <div className="text-sm text-[#4B5563]">{space.address}</div>
-                      <div className="flex items-center mt-1">
-                        <span className="text-sm font-medium text-[#4B5563]">{space.rating} ★</span>
-                        <span className="mx-2 text-[#E5E7EB]">•</span>
-                        <span className="text-sm text-[#4B5563]">{space.spots} spots</span>
-                        <span className="mx-2 text-[#E5E7EB]">•</span>
-                        <span className="text-sm text-[#4B5563]">${space.pricing.car}/hr</span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-            
-            {/* Mobile No Results Message */}
-            {showSearchResults && searchQuery.trim() !== '' && searchResults.length === 0 && (
-              <div className="absolute w-full mt-1 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 p-4 text-center">
-                <p className="text-[#4B5563]">No parking spots found matching &quot;{searchQuery}&quot;</p>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Content area with padding for fixed header */}
         <div className="pt-20 md:pt-24">
           {/* Dynamic Content Area */}
