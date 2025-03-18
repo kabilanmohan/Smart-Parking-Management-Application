@@ -3,7 +3,7 @@ import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/ap
 import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
-import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaBars, FaSignOutAlt, FaSearch, FaSync, FaChevronLeft, FaChevronRight, FaMapMarkerAlt } from "react-icons/fa";
+import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaSignOutAlt, FaSearch, FaSync, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
@@ -156,7 +156,7 @@ const Home = () => {
   };
 
   const handleDirectionsClick = (space) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${space.location.lat},${space.location.lng}`;
+    const url = `httpss://www.google.com/maps/dir/?api=1&destination=${space.location.lat},${space.location.lng}`;
     window.open(url, "_blank");
   };
 
@@ -191,7 +191,6 @@ const Home = () => {
         return (
           <>
             {/* Stats Cards Row - Add Map Legend */}
-            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-6">
               
               {/* Map Legend Card - Improved layout */}
@@ -203,7 +202,7 @@ const Home = () => {
                     <div className="flex items-center">
                       <div className="w-8 h-8 mr-2 flex items-center justify-center">
                         <img 
-                          src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                          src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
                           alt="Blue marker"
                           className="w-6 h-6"
                         />
@@ -213,7 +212,7 @@ const Home = () => {
                     <div className="flex items-center">
                       <div className="w-8 h-8 mr-2 flex items-center justify-center">
                         <img 
-                          src="http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                          src="https://maps.google.com/mapfiles/ms/icons/red-dot.png"
                           alt="Red marker"
                           className="w-6 h-6"
                         />
@@ -289,7 +288,7 @@ const Home = () => {
                         <Marker 
                           position={position}
                           icon={{
-                            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
                           }}
                         />
 
@@ -300,7 +299,7 @@ const Home = () => {
                             position={space.location}
                             onClick={() => setSelectedSpace(space)}
                             icon={{
-                              url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                              url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
                             }}
                           />
                         ))}
@@ -553,9 +552,10 @@ const Home = () => {
           <p>© 2025 Vintage Parking Management — All rights reserved.</p>
         </footer>
       </div>
-      
-      {/* Add custom scrollbar styles */}
-      <style jsx>{`
+
+      {/* Add custom scrollbar styles using standard React style approach */}
+      <style dangerouslySetInnerHTML={{__html: `
+        /* Apply custom scrollbar to specific elements with the class */
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
@@ -564,18 +564,34 @@ const Home = () => {
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #3B82F6;
+          background: #C94B4B;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #2563EB;
+          background: #A83A3A;
+        }
+        
+        /* Apply custom scrollbar to all scrollable elements */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #F9FAFB;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #C94B4B;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #A83A3A;
         }
         
         /* Apply font family throughout the component */
-        * {
+        .min-h-screen {
           font-family: 'Proxima Nova', 'Roboto', sans-serif;
         }
-      `}</style>
+      `}} />
     </div>
   );
 };
