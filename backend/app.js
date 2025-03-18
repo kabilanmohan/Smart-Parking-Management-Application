@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import feedbackRoutes from './routes/feedbackRoutes.js';
+import complaintsRoutes from './routes/complaintsRoutes.js'; // Import the new routes
 import process from 'process';
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', feedbackRoutes);
+app.use('/api', complaintsRoutes); // Add the complaints routes
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

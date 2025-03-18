@@ -512,7 +512,13 @@ const Home = () => {
               ].map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveMenuItem(item.id)}
+                  onClick={() => {
+                    setActiveMenuItem(item.id);
+                    // Navigate to help-support when clicking the support menu item
+                    if (item.id === "support") {
+                      navigate("/help-support");
+                    }
+                  }}
                   className={`flex items-center w-full p-3 rounded-lg transition-colors ${
                     activeMenuItem === item.id
                       ? "bg-[#c94b4b] text-white font-semibold"
