@@ -8,6 +8,7 @@ import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
 import Loader from "./Loader"; // Import the Loader component
+import PaymentHistory from "./PaymentHistory"; // Correct import for PaymentHistory component
 import ParkingSpaceDetails from './ParkingSpaceDetails'; // Import the new component
 
 const containerStyle = {
@@ -514,9 +515,24 @@ const Home = () => {
                   key={item.id}
                   onClick={() => {
                     setActiveMenuItem(item.id);
-                    // Navigate to help-support when clicking the support menu item
-                    if (item.id === "support") {
+                    // Add navigation for specific menu items
+                    if (item.id === "payments") {
+                      navigate("/payment-history"); // Corrected path for PaymentHistory component
+                    } else if (item.id === "profile") {
+                      // Keep using the internal profile view
+                      // No navigation needed
+                    } else if (item.id === "bookings") {
+                      navigate("/bookings");
+                    } else if (item.id === "alerts") {
+                      navigate("/alerts");
+                    } else if (item.id === "support") {
                       navigate("/help-support");
+                    } else if (item.id === "dashboard") {
+                      // If already in Home component, just reset to dashboard view
+                      // Otherwise navigate to home
+                      if (window.location.pathname !== "/") {
+                        navigate("/");
+                      }
                     }
                   }}
                   className={`flex items-center w-full p-3 rounded-lg transition-colors ${

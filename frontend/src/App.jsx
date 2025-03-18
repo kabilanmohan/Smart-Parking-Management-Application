@@ -13,6 +13,7 @@ import ParkingSetup from "./components/ParkingSetup";
 import UserProfile from "./components/UserProfile";
 import HelpAndSupport from "./components/HelpAndSupport";
 import Loader from "./components/Loader"; // Import the new Loader component
+import PaymentHistory from "./components/PaymentHistory"; // Add this import
 
 function App() {
   const [user, setUser] = useState(null);
@@ -52,6 +53,7 @@ function App() {
         <Route path="/setup-parking" element={<ParkingSetup />} />
         <Route path="/parking-lot" element={<ParkingLot />} />
         <Route path="/payment_module" element={<App2 />} />
+        <Route path="/payment-history" element={user ? <PaymentHistory />: <Navigate to="/dashboard" replace />}  />
         <Route 
           path="/help-support" 
           element={user ? <HelpAndSupport /> : <Navigate to="/login" replace />} 
