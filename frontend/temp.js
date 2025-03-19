@@ -53,6 +53,17 @@ const parkingSlotData = {
                 { row: 6, cols: [0, 5, 5, 0,4, 4, 0,5,5, 0] },
                 { row: 7, cols: [0, 5, 5, 0,4, 4, 0,5,5, 0] },
                 { row: 8, cols: [0, 0, 0, 0, 0,0, 0, 0, 0, 0] }
+            ],
+            evcharging:[
+                { row: 0, cols: [false,false,false,false,false,false,false,false,false,false] },
+                { row: 1, cols: [false, false, true, false, true, true, false, false, false, false] },
+                { row: 2, cols: [false, true, false, false, true, false,false,true,false, false] },
+                { row: 3, cols: [false, true, true, false, true, true, true, true, false, false] },
+                { row: 4, cols: [false,false,false,false,false,false,false,false,false,false]},
+                { row: 5, cols: [false, false, false, false, true, true, true, false, false, false] },
+                { row: 6, cols: [false, false, false, false, false, false,false,false,true, false] },
+                { row: 7, cols: [false, true, false, true, true, false, true, true, true, false] },
+                { row: 8, cols: [false,false,false,false,false,false,false,false,false,false]}
             ]
         },
     "2": {
@@ -88,6 +99,17 @@ const parkingSlotData = {
                 { row: 6, cols: [0, 0, 0, 0,0, 0, 0,0,0, 0] },
                 { row: 7, cols: [0, 5, 5, 5,5, 5, 5,5,5, 0] },
                 { row: 8, cols: [0, 0, 0, 0, 0,0, 0, 0, 0, 0] }
+            ],
+            evcharging: [
+                { row: 0, cols: [false,false,false,false,false,false,false,false,false,false] },
+                { row: 1, cols: [false, false, false, false, true, true, false, false, false, false] },
+                { row: 2, cols: [false, false, true, false, false, true,false,false,true, false] },
+                { row: 3, cols: [false, true, true, true, true, true, true, true, true, false] },
+                { row: 4, cols: [false,false,false,false,false,false,false,false,false,false]},
+                { row: 5, cols: [false, false, false, false, true, true, false, false, false, false] },
+                { row: 6, cols: [false, false, false, false, false, false,false,false,false, false] },
+                { row: 7, cols: [false, true, true, true, true, true, true, true, true, false] },
+                { row: 8, cols: [false,false,false,false,false,false,false,false,false,false]}
             ]
         }
     },
