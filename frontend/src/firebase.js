@@ -27,4 +27,13 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app); // Add this export
+
+// Update this function to use the correct collection name
+export async function getPaymentHistory(userId) {
+  const transactionsRef = collection(db, "transactions"); // Change from "payments" to "transactions"
+  const q = query(transactionsRef, where("userId", "==", userId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
 export { collection, addDoc, getDocs, query, where, serverTimestamp };

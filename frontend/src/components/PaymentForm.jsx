@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { db } from "../firebase";
+import { db,auth } from "../firebase";
 import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
 import PropTypes from 'prop-types';
 
@@ -46,6 +46,7 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     }
   };
 
+  // Update the handlePayment function to include userId and more details
   const handlePayment = async () => {
     if (!validateInputs()) return;
 
@@ -54,14 +55,31 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     const newFinalAmount = Math.max(amount - discount, 0);
     setFinalAmount(newFinalAmount);
 
-    const transaction = {
-      name,
-      cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
-      amount: newFinalAmount,
-      date: new Date(),
-    };
-
     try {
+      const user = auth.currentUser;
+      
+      if (!user) {
+        setError("You must be logged in to make a payment");
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Generate a unique transaction ID
+      const transactionId = `TX${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      
+      const transaction = {
+        id: transactionId,
+        userId: user.uid, // Critical: Add the user ID
+        name,
+        cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
+        amount: newFinalAmount,
+        date: new Date(),
+        status: "completed",
+        location: "Ettimadai Parking", // Add location details
+        spotNumber: "A-123", // Add spot number
+        vehicleType: "Car" // Add vehicle type
+      };
+
       await addDoc(collection(db, "transactions"), transaction);
       onPaymentSuccess(transaction);
       alert("Payment Successful!");
