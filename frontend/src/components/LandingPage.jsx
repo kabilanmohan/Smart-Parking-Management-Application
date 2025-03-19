@@ -28,7 +28,7 @@ const LandingPage = () => {
             className="w-48 h-40 mx-auto mb-8 filter saturate-110 contrast-125 animate-float"
           />
 
-          <h1 className="text-6xl font-bold text-[#1F2937] mb-4 bg-gradient-to-r from-[#C94B4B] to-[#b33737] bg-clip-text text-transparent">
+          <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-[#C94B4B] to-[#b33737] bg-clip-text text-transparent">
             Gotham Parking
           </h1>
           <p className="text-xl text-[#4B5563]/90 font-medium mb-8">

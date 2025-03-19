@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { FaUser, FaPhone, FaCar, FaCogs, FaEnvelope, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import Loader from "./Loader"; // Import the Loader component
 import PropTypes from 'prop-types'; // Import PropTypes
+import UserComplaints from "./UserComplaints"; // Import the UserComplaints component
 
 const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, inDashboard = false }) => {
   const navigate = useNavigate();
@@ -182,159 +183,169 @@ const UserProfile = ({ userData: propUserData, setUserData: setParentUserData, i
 
   return (
     <div className={containerClass}>
-      <div className={inDashboard ? "bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] max-w-3xl w-full" : "w-full max-w-md bg-white rounded-xl shadow-lg p-6 border border-[#E5E7EB]"}>
-        <h1 className="text-2xl font-bold text-[#1F2937] mb-6">User Profile</h1>
-        
-        {message && (
-          <div className={`mb-4 p-3 rounded-lg ${
-            message.includes("success") ? "bg-[#D1FAE5] text-[#10B981]" : "bg-[#FEE2E2] text-[#EF4444]"
-          }`}>
-            <p className="text-sm">{message}</p>
-          </div>
-        )}
-        
-        {isEditing ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-[#4B5563] mb-1 text-sm font-medium">Full Name</label>
-              <div className="relative">
-                <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
-                  required
-                />
-              </div>
+      <div className="w-full max-w-4xl mx-auto space-y-8">
+        {/* Profile Section */}
+        <div className={inDashboard ? "bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] w-full" : "w-full max-w-md bg-white rounded-xl shadow-lg p-6 border border-[#E5E7EB]"}>
+          <h1 className="text-2xl font-bold text-[#1F2937] mb-6">User Profile</h1>
+          
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg ${
+              message.includes("success") ? "bg-[#D1FAE5] text-[#10B981]" : "bg-[#FEE2E2] text-[#EF4444]"
+            }`}>
+              <p className="text-sm">{message}</p>
             </div>
-            
-            <div>
-              <label className="block text-[#4B5563] mb-1 text-sm font-medium">Phone Number</label>
-              <div className="relative">
-                <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
-                />
+          )}
+          
+          {/* Profile editing and display logic */}
+          {isEditing ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[#4B5563] mb-1 text-sm font-medium">Full Name</label>
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-[#4B5563] mb-1 text-sm font-medium">Vehicle Number</label>
-              <div className="relative">
-                <FaCar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
-                <input
-                  type="text"
-                  name="vehicleNumber"
-                  value={formData.vehicleNumber}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
-                  placeholder="e.g. ABC-123"
-                />
+              
+              <div>
+                <label className="block text-[#4B5563] mb-1 text-sm font-medium">Phone Number</label>
+                <div className="relative">
+                  <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                  />
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-[#4B5563] mb-1 text-sm font-medium">Vehicle Type</label>
-              <div className="relative">
-                <FaCogs className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
-                <select
-                  name="vehicleType"
-                  value={formData.vehicleType}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB] appearance-none"
+              
+              <div>
+                <label className="block text-[#4B5563] mb-1 text-sm font-medium">Vehicle Number</label>
+                <div className="relative">
+                  <FaCar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                  <input
+                    type="text"
+                    name="vehicleNumber"
+                    value={formData.vehicleNumber}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB]"
+                    placeholder="e.g. ABC-123"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-[#4B5563] mb-1 text-sm font-medium">Vehicle Type</label>
+                <div className="relative">
+                  <FaCogs className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B5563]" />
+                  <select
+                    name="vehicleType"
+                    value={formData.vehicleType}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#F9FAFB] text-[#1F2937] px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C94B4B] border border-[#E5E7EB] appearance-none"
+                  >
+                    <option value="car">Car</option>
+                    <option value="bike">Motorcycle/Scooter</option>
+                    <option value="van">Van/SUV</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex space-x-4 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#C94B4B] text-white py-3 rounded-lg font-semibold hover:bg-[#C94B4B]/90 transition-colors flex items-center justify-center"
                 >
-                  <option value="car">Car</option>
-                  <option value="bike">Motorcycle/Scooter</option>
-                  <option value="van">Van/SUV</option>
-                </select>
+                  <FaSave className="mr-2" />
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 bg-[#F3F4F6] text-[#4B5563] py-3 rounded-lg font-semibold hover:bg-[#E5E7EB] transition-colors flex items-center justify-center"
+                >
+                  <FaTimes className="mr-2" />
+                  Cancel
+                </button>
               </div>
-            </div>
-            
-            <div className="flex space-x-4 pt-2">
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
+                <div className="flex">
+                  <FaEnvelope className="text-[#4B5563] mr-3 mt-1" />
+                  <div>
+                    <p className="text-[#4B5563] text-sm">Email</p>
+                    <p className="text-[#1F2937] font-medium">{userEmail}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
+                <div className="flex">
+                  <FaUser className="text-[#4B5563] mr-3 mt-1" />
+                  <div>
+                    <p className="text-[#4B5563] text-sm">Full Name</p>
+                    <p className="text-[#1F2937] font-medium">{userName}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
+                <div className="flex">
+                  <FaPhone className="text-[#4B5563] mr-3 mt-1" />
+                  <div>
+                    <p className="text-[#4B5563] text-sm">Phone Number</p>
+                    <p className="text-[#1F2937] font-medium">{userPhone}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
+                <div className="flex">
+                  <FaCar className="text-[#4B5563] mr-3 mt-1" />
+                  <div>
+                    <p className="text-[#4B5563] text-sm">Vehicle Number</p>
+                    <p className="text-[#1F2937] font-medium">{userVehicleNumber}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
+                <div className="flex">
+                  <FaCogs className="text-[#4B5563] mr-3 mt-1" />
+                  <div>
+                    <p className="text-[#4B5563] text-sm">Vehicle Type</p>
+                    <p className="text-[#1F2937] font-medium">{userVehicleType.charAt(0).toUpperCase() + userVehicleType.slice(1)}</p>
+                  </div>
+                </div>
+              </div>
+              
               <button
-                type="submit"
-                className="flex-1 bg-[#C94B4B] text-white py-3 rounded-lg font-semibold hover:bg-[#C94B4B]/90 transition-colors flex items-center justify-center"
+                onClick={() => setIsEditing(true)}
+                className="w-full bg-[#C94B4B] text-white py-3 rounded-lg font-semibold hover:bg-[#C94B4B]/90 transition-colors flex items-center justify-center"
               >
-                <FaSave className="mr-2" />
-                Save Changes
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="flex-1 bg-[#F3F4F6] text-[#4B5563] py-3 rounded-lg font-semibold hover:bg-[#E5E7EB] transition-colors flex items-center justify-center"
-              >
-                <FaTimes className="mr-2" />
-                Cancel
+                <FaEdit className="mr-2" />
+                Edit Profile
               </button>
             </div>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <div className="flex">
-                <FaEnvelope className="text-[#4B5563] mr-3 mt-1" />
-                <div>
-                  <p className="text-[#4B5563] text-sm">Email</p>
-                  <p className="text-[#1F2937] font-medium">{userEmail}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <div className="flex">
-                <FaUser className="text-[#4B5563] mr-3 mt-1" />
-                <div>
-                  <p className="text-[#4B5563] text-sm">Full Name</p>
-                  <p className="text-[#1F2937] font-medium">{userName}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <div className="flex">
-                <FaPhone className="text-[#4B5563] mr-3 mt-1" />
-                <div>
-                  <p className="text-[#4B5563] text-sm">Phone Number</p>
-                  <p className="text-[#1F2937] font-medium">{userPhone}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <div className="flex">
-                <FaCar className="text-[#4B5563] mr-3 mt-1" />
-                <div>
-                  <p className="text-[#4B5563] text-sm">Vehicle Number</p>
-                  <p className="text-[#1F2937] font-medium">{userVehicleNumber}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <div className="flex">
-                <FaCogs className="text-[#4B5563] mr-3 mt-1" />
-                <div>
-                  <p className="text-[#4B5563] text-sm">Vehicle Type</p>
-                  <p className="text-[#1F2937] font-medium">{userVehicleType.charAt(0).toUpperCase() + userVehicleType.slice(1)}</p>
-                </div>
-              </div>
-            </div>
-            
-            <button
-              onClick={() => setIsEditing(true)}
-              className="w-full bg-[#C94B4B] text-white py-3 rounded-lg font-semibold hover:bg-[#C94B4B]/90 transition-colors flex items-center justify-center"
-            >
-              <FaEdit className="mr-2" />
-              Edit Profile
-            </button>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* User Complaints Section - Added directly below the profile */}
+        <div className="w-full">
+          <h2 className="text-2xl font-bold text-[#1F2937] mb-4 px-6">Your Complaints</h2>
+          <UserComplaints inDashboard={true} />
+        </div>
       </div>
       
       {/* Add custom style for consistent font application */}

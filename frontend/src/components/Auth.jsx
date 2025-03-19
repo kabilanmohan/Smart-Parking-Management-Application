@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -8,11 +9,12 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import batmanParkingImage from "../assets/batman-parking2.jpeg";
-import { FaGoogle, FaApple, FaFacebook, FaUser, FaPhone, FaCar, FaCogs, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaParking, FaCarSide, FaCarAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { FaGoogle, FaApple, FaFacebook, FaUser, FaPhone, FaCar, FaCogs, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaParking, FaCarSide, FaCarAlt, FaMapMarkerAlt, FaArrowLeft } from "react-icons/fa";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 const Auth = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,6 +27,11 @@ const Auth = () => {
     vehicleType: 'car',
   });
   const [message, setMessage] = useState('');
+
+  // Add function to handle back navigation
+  const handleBackToLanding = () => {
+    navigate('/');
+  };
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -140,6 +147,15 @@ const handleGoogleSignIn = async () => {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Back button to landing page */}
+      <button 
+        onClick={handleBackToLanding}
+        className="absolute top-6 left-6 z-20 flex items-center text-[#1F2937] hover:text-[#C94B4B] transition-colors bg-white/80 px-4 py-2 rounded-lg shadow-md hover:shadow-lg"
+      >
+        <FaArrowLeft className="mr-2" />
+        <span>Back to Home</span>
+      </button>
+
       {/* Background Design Elements */}
       <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#ffffff] to-[#C94B4B] opacity-30 blur-2xl"></div>
       <div className="absolute top-1/2 -translate-y-1/2 left-10 text-[#E5E7EB] opacity-10">

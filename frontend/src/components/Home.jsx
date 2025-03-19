@@ -160,7 +160,7 @@ const Home = () => {
   };
 
   const handleDirectionsClick = (space) => {
-    const url = `httpss://www.google.com/maps/dir/?api=1&destination=${space.location.lat},${space.location.lng}`;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${space.location.lat},${space.location.lng}`;
     window.open(url, "_blank");
   };
 
@@ -516,7 +516,7 @@ const Home = () => {
                     setActiveMenuItem(item.id);
                     // Add navigation for specific menu items
                     if (item.id === "payments") {
-                      navigate("/payment-history"); // Corrected path for PaymentHistory component
+                      navigate("/payment-history");
                     } else if (item.id === "profile") {
                       // Keep using the internal profile view
                       // No navigation needed
@@ -528,9 +528,8 @@ const Home = () => {
                       navigate("/help-support");
                     } else if (item.id === "dashboard") {
                       // If already in Home component, just reset to dashboard view
-                      // Otherwise navigate to home
-                      if (window.location.pathname !== "/") {
-                        navigate("/");
+                      if (window.location.pathname !== "/dashboard") {
+                        navigate("/dashboard");
                       }
                     }
                   }}
