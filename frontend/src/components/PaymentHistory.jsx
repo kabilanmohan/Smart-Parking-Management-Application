@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaDownload, FaPrint, FaEye, FaSort, FaFilter, FaSearch } from "react-icons/fa";
-import { db } from "../firebase";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { FaArrowLeft, FaDownload, FaPrint, FaEye, FaSort, FaFilter, FaSearch, FaSync } from "react-icons/fa";
+import { db, auth } from "../firebase"; // Ensure auth is imported
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import Papa from "papaparse";
@@ -21,124 +21,53 @@ const PaymentHistory = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const q = query(collection(db, "transactions"), orderBy("date", "desc"));
+        setLoading(true);
+        const user = auth.currentUser;
+        
+        if (!user) {
+          console.log("No authenticated user found");
+          setTransactions([]);
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Fetching transactions for user:", user.uid);
+        
+        // Create a query that filters by userId and sorts by date
+        const q = query(
+          collection(db, "transactions"),
+          where("userId", "==", user.uid),
+          orderBy("date", sortOrder)
+        );
+        
+        console.log("Query created, fetching data...");
         const querySnapshot = await getDocs(q);
-
+        
+        console.log(`Found ${querySnapshot.size} transactions in database`);
+        
+        // Map through the documents and convert timestamps to Date objects
         const data = querySnapshot.docs.map((doc) => {
           const transaction = doc.data();
+          console.log("Transaction data:", transaction);
           return {
             id: doc.id,
             ...transaction,
             date: transaction.date?.toDate() || new Date(),
           };
         });
-
+        
+        console.log("Processed transactions:", data);
         setTransactions(data || []);
       } catch (error) {
         console.error("Error fetching transactions:", error);
-        
-        // Fallback to mock data for development if Firebase fetch fails
-        const mockTransactions = [
-          {
-            id: "TX789012",
-            date: new Date(2025, 2, 15, 14, 30),
-            name: "Wayne Tower Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 25.00,
-            duration: "4 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "A-123",
-            location: "Downtown Gotham, 1007 Mountain Drive"
-          },
-          {
-            id: "TX789013",
-            date: new Date(2025, 2, 14, 10, 15),
-            name: "Arkham City Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 18.50,
-            duration: "3 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "B-045",
-            location: "East Side, 900 Crime Alley"
-          },
-          {
-            id: "TX789014",
-            date: new Date(2025, 2, 12, 9, 0),
-            name: "Gotham Heights Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 15.00,
-            duration: "2.5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "C-198",
-            location: "North Gotham, 123 Bat Street"
-          },
-          {
-            id: "TX789015",
-            date: new Date(2025, 2, 10, 18, 45),
-            name: "Wayne Tower Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 12.00,
-            duration: "2 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "A-056",
-            location: "Downtown Gotham, 1007 Mountain Drive"
-          },
-          {
-            id: "TX789016",
-            date: new Date(2025, 2, 8, 13, 20),
-            name: "Gotham Central Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 30.00,
-            duration: "5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "D-012",
-            location: "Central Gotham, 42 Wayne Avenue"
-          },
-          {
-            id: "TX789017",
-            date: new Date(2025, 2, 5, 8, 10),
-            name: "Arkham City Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 10.50,
-            duration: "1.5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "B-134",
-            location: "East Side, 900 Crime Alley"
-          },
-          {
-            id: "TX789018",
-            date: new Date(2025, 2, 1, 15, 0),
-            name: "Wayne Tower Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 28.00,
-            duration: "4.5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "A-003",
-            location: "Downtown Gotham, 1007 Mountain Drive"
-          },
-        ];
-        setTransactions(mockTransactions);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchTransactions();
-  }, []);
+  }, [sortOrder]); // Re-fetch when sort order changes
 
   // PDF Download functionality
   const downloadPDF = () => {
@@ -325,6 +254,57 @@ const PaymentHistory = () => {
           <h1 className="text-3xl font-bold text-[#664a85]">Payment History</h1>
         </div>
         <div className="flex gap-2">
+          <button 
+            onClick={() => {
+              setLoading(true);
+              const fetchTransactions = async () => {
+                try {
+                  const user = auth.currentUser;
+                  if (!user) {
+                    console.log("No authenticated user found");
+                    setTransactions([]);
+                    setLoading(false);
+                    return;
+                  }
+                  
+                  console.log("Refreshing transactions for user:", user.uid);
+                  
+                  const q = query(
+                    collection(db, "transactions"),
+                    where("userId", "==", user.uid),
+                    orderBy("date", sortOrder)
+                  );
+                  
+                  const querySnapshot = await getDocs(q);
+                  
+                  const data = querySnapshot.docs.map((doc) => {
+                    const transaction = doc.data();
+                    return {
+                      id: doc.id,
+                      ...transaction,
+                      date: transaction.date?.toDate() || new Date(),
+                    };
+                  });
+                  
+                  console.log("Refreshed transactions:", data);
+                  setTransactions(data || []);
+                } catch (error) {
+                  console.error("Error refreshing transactions:", error);
+                  setTransactions([]);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              
+              fetchTransactions();
+            }}
+            className="flex items-center bg-[#664a85] text-white px-4 py-2 rounded-lg hover:bg-[#523c69] transition-colors shadow-sm"
+          >
+            <FaSync className="mr-2" />
+            <span>Refresh</span>
+          </button>
+          
+          {/* Keep existing buttons */}
           <button 
             onClick={downloadPDF}
             className="flex items-center bg-[#C94B4B] text-white px-4 py-2 rounded-lg hover:bg-[#B83E3E] transition-colors shadow-sm"
