@@ -3,11 +3,12 @@ import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/ap
 import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
-import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaBars, FaSignOutAlt, FaSearch, FaSync, FaChevronLeft, FaChevronRight, FaMapMarkerAlt } from "react-icons/fa";
+import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaSignOutAlt, FaSearch, FaSync, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
 import Loader from "./Loader"; // Import the Loader component
+import ParkingSpaceDetails from './ParkingSpaceDetails'; // Import the new component
 
 const containerStyle = {
   width: "100%",
@@ -51,12 +52,15 @@ const Home = () => {
   const [activeMenuItem, setActiveMenuItem] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const [position, setPosition] = useState({ lat: 37.7749, lng: -122.4194 });
   const [parkingSpaces, setParkingSpaces] = useState([]);
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [detailSpace, setDetailSpace] = useState(null); // Add a new state to track which space is being viewed in detail
 
   // Add a key for the Google Map component to force proper re-rendering
   const [mapKey, setMapKey] = useState(Date.now());
@@ -142,7 +146,7 @@ const Home = () => {
           price: `$${data.pricing.car}/hour`,
           spots: data.TotalSlots,
           distance: "0.3 miles",
-          rating: data.rating,
+          rating: data.averageRating,
           levels: data.levels,
           pricing: data.pricing,
         });
@@ -181,6 +185,43 @@ const Home = () => {
     setMapKey(Date.now());
   };
 
+  // Add search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+    
+    // Filter parking spaces based on search query
+    const filteredSpaces = parkingSpaces.filter(space => 
+      space.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      space.address.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    setSearchResults(filteredSpaces);
+    setShowSearchResults(true);
+  }, [searchQuery, parkingSpaces]);
+
+  // Handle search result click
+  const handleSearchResultClick = (space) => {
+    setDetailSpace(space);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  };
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.search-container')) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Render content based on active menu item
   const renderContent = () => {
     switch (activeMenuItem) {
@@ -191,7 +232,6 @@ const Home = () => {
         return (
           <>
             {/* Stats Cards Row - Add Map Legend */}
-            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-6">
               
               {/* Map Legend Card - Improved layout */}
@@ -203,7 +243,7 @@ const Home = () => {
                     <div className="flex items-center">
                       <div className="w-8 h-8 mr-2 flex items-center justify-center">
                         <img 
-                          src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                          src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
                           alt="Blue marker"
                           className="w-6 h-6"
                         />
@@ -213,7 +253,7 @@ const Home = () => {
                     <div className="flex items-center">
                       <div className="w-8 h-8 mr-2 flex items-center justify-center">
                         <img 
-                          src="http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                          src="https://maps.google.com/mapfiles/ms/icons/red-dot.png"
                           alt="Red marker"
                           className="w-6 h-6"
                         />
@@ -289,7 +329,7 @@ const Home = () => {
                         <Marker 
                           position={position}
                           icon={{
-                            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
                           }}
                         />
 
@@ -300,7 +340,7 @@ const Home = () => {
                             position={space.location}
                             onClick={() => setSelectedSpace(space)}
                             icon={{
-                              url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                              url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
                             }}
                           />
                         ))}
@@ -320,16 +360,32 @@ const Home = () => {
                               <p className="text-sm mb-2">Pricing: Car - ${selectedSpace.pricing.car}/hr, Bike - ${selectedSpace.pricing.bike}/hr</p>
                               <div className="flex space-x-2">
                                 <button
-                                  onClick={() => handleDirectionsClick(selectedSpace)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDirectionsClick(selectedSpace);
+                                  }}
                                   className="bg-[#3B82F6] text-white px-3 py-1 rounded text-sm hover:bg-[#2563EB] transition-colors"
                                 >
                                   Directions
                                 </button>
                                 <button
-                                  onClick={() => handleBookNowClick(selectedSpace)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBookNowClick(selectedSpace);
+                                  }}
                                   className="bg-[#C94B4B] text-white px-3 py-1 rounded text-sm hover:bg-[#C94B4B]/80 transition-colors"
                                 >
                                   Book Now
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailSpace(selectedSpace);
+                                    setSelectedSpace(null); // Close the InfoWindow when showing details
+                                  }}
+                                  className="bg-[#10B981] text-white px-3 py-1 rounded text-sm hover:bg-[#059669] transition-colors"
+                                >
+                                  More Info
                                 </button>
                               </div>
                             </div>
@@ -341,57 +397,84 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Right Column - Nearby Spots and Favorites */}
+              {/* Right Column - Detailed Parking Space or Lists */}
               <div className="lg:col-span-1">
-                {/* Nearby Spots */}
-                <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-[#E5E7EB] hover:shadow-md transition-shadow">
-                  <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Nearby Spots</h2>
-                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {parkingSpaces.slice(0, 3).map((spot) => (
-                      <div
-                        key={spot.id}
-                        className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
-                      >
-                        <div className="mb-3 md:mb-0">
-                          <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
-                          <p className="text-sm text-[#4B5563]">{spot.address}</p>
-                          <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
-                        </div>
-                        <button 
-                          onClick={() => handleBookNowClick(spot)} 
-                          className="bg-[#C94B4B] text-white px-4 py-2 rounded-lg hover:bg-[#C94B4B]/80 transition-colors w-full md:w-auto"
-                        >
-                          Book Now
-                        </button>
+                {detailSpace ? (
+                  <ParkingSpaceDetails 
+                    space={detailSpace}
+                    onClose={() => setDetailSpace(null)}
+                    onBookNow={handleBookNowClick}
+                    onDirections={handleDirectionsClick}
+                  />
+                ) : (
+                  <>
+                    {/* Nearby Spots */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-[#E5E7EB] hover:shadow-md transition-shadow">
+                      <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Nearby Spots</h2>
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {parkingSpaces.slice(0, 3).map((spot) => (
+                          <div
+                            key={spot.id}
+                            className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
+                          >
+                            <div className="mb-3 md:mb-0">
+                              <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
+                              <p className="text-sm text-[#4B5563]">{spot.address}</p>
+                              <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                              <button 
+                                onClick={() => handleBookNowClick(spot)} 
+                                className="bg-[#C94B4B] text-white px-3 py-1 rounded text-sm hover:bg-[#C94B4B]/80 transition-colors"
+                              >
+                                Book Now
+                              </button>
+                              <button 
+                                onClick={() => setDetailSpace(spot)} 
+                                className="bg-[#10B981] text-white px-3 py-1 rounded text-sm hover:bg-[#059669] transition-colors"
+                              >
+                                More Info
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Favorite Spots */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
-                  <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Favorite Spots</h2>
-                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {parkingSpaces.slice(0, 3).map((spot) => (
-                      <div
-                        key={spot.id}
-                        className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
-                      >
-                        <div className="mb-3 md:mb-0">
-                          <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
-                          <p className="text-sm text-[#4B5563]">{spot.address}</p>
-                          <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
-                        </div>
-                        <button 
-                          onClick={() => handleBookNowClick(spot)} 
-                          className="bg-[#C94B4B] text-white px-4 py-2 rounded-lg hover:bg-[#C94B4B]/80 transition-colors w-full md:w-auto"
-                        >
-                          Book Now
-                        </button>
+                    {/* Favorite Spots */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
+                      <h2 className="text-lg font-bold mb-4 text-[#1F2937]">Favorite Spots</h2>
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {parkingSpaces.slice(0, 3).map((spot) => (
+                          <div
+                            key={spot.id}
+                            className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg hover:bg-[#DBEAFE]/50 transition-colors"
+                          >
+                            <div className="mb-3 md:mb-0">
+                              <h3 className="font-semibold text-[#1F2937]">{spot.name}</h3>
+                              <p className="text-sm text-[#4B5563]">{spot.address}</p>
+                              <p className="text-sm text-[#4B5563]">{spot.price} • {spot.spots} spots • {spot.distance}</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                              <button 
+                                onClick={() => handleBookNowClick(spot)} 
+                                className="bg-[#C94B4B] text-white px-3 py-1 rounded text-sm hover:bg-[#C94B4B]/80 transition-colors"
+                              >
+                                Book Now
+                              </button>
+                              <button 
+                                onClick={() => setDetailSpace(spot)} 
+                                className="bg-[#10B981] text-white px-3 py-1 rounded text-sm hover:bg-[#059669] transition-colors"
+                              >
+                                More Info
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </>
@@ -429,7 +512,27 @@ const Home = () => {
               ].map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveMenuItem(item.id)}
+                  onClick={() => {
+                    setActiveMenuItem(item.id);
+                    // Add navigation for specific menu items
+                    if (item.id === "payments") {
+                      navigate("/payment-history");
+                    } else if (item.id === "profile") {
+                      // Keep using the internal profile view
+                      // No navigation needed
+                    } else if (item.id === "bookings") {
+                      navigate("/bookings");
+                    } else if (item.id === "alerts") {
+                      navigate("/alerts");
+                    } else if (item.id === "support") {
+                      navigate("/help-support");
+                    } else if (item.id === "dashboard") {
+                      // If already in Home component, just reset to dashboard view
+                      if (window.location.pathname !== "/dashboard") {
+                        navigate("/dashboard");
+                      }
+                    }
+                  }}
                   className={`flex items-center w-full p-3 rounded-lg transition-colors ${
                     activeMenuItem === item.id
                       ? "bg-[#c94b4b] text-white font-semibold"
@@ -482,8 +585,8 @@ const Home = () => {
             <h1 className="text-xl md:text-2xl font-bold text-[#C94B4B] tracking-wider font-['Proxima_Nova','Roboto',sans-serif]">VINTAGE PARKING</h1>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 mx-4 max-w-lg hidden md:block">
+          {/* Search Bar with Dropdown */}
+          <div className="flex-1 mx-4 max-w-lg hidden md:block search-container relative">
             <div className="relative">
               <FaSearch className="absolute left-3 top-3 text-[#4B5563]" />
               <input
@@ -493,6 +596,38 @@ const Home = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6] bg-[#F9FAFB] text-[#1F2937] placeholder-[#4B5563]"
               />
+              
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute w-full mt-1 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto custom-scrollbar">
+                  {searchResults.map((space) => (
+                    <button
+                      key={space.id}
+                      onClick={() => handleSearchResultClick(space)}
+                      className="w-full text-left px-4 py-3 hover:bg-[#DBEAFE] border-b border-[#E5E7EB] last:border-b-0 transition-colors flex items-start"
+                    >
+                      <div>
+                        <div className="font-semibold text-[#1F2937]">{space.name}</div>
+                        <div className="text-sm text-[#4B5563]">{space.address}</div>
+                        <div className="flex items-center mt-1">
+                          <span className="text-sm font-medium text-[#4B5563]">{space.rating} ★</span>
+                          <span className="mx-2 text-[#E5E7EB]">•</span>
+                          <span className="text-sm text-[#4B5563]">{space.spots} spots</span>
+                          <span className="mx-2 text-[#E5E7EB]">•</span>
+                          <span className="text-sm text-[#4B5563]">${space.pricing.car}/hr</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* No Results Message */}
+              {showSearchResults && searchQuery.trim() !== '' && searchResults.length === 0 && (
+                <div className="absolute w-full mt-1 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 p-4 text-center">
+                  <p className="text-[#4B5563]">No parking spots found matching &quot;{searchQuery}&quot;</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -527,21 +662,6 @@ const Home = () => {
             )}
           </div>
         </header>
-
-        {/* Mobile search bar (visible only on mobile) */}
-        <div className="md:hidden px-4 pt-16 pb-2 bg-white/95 border-b border-[#E5E7EB]">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-3 text-[#4B5563]" />
-            <input
-              type="text"
-              placeholder="Search for parking spots..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6] bg-[#F9FAFB] text-[#1F2937] placeholder-[#4B5563]"
-            />
-          </div>
-        </div>
-
         {/* Content area with padding for fixed header */}
         <div className="pt-20 md:pt-24">
           {/* Dynamic Content Area */}
@@ -553,9 +673,10 @@ const Home = () => {
           <p>© 2025 Vintage Parking Management — All rights reserved.</p>
         </footer>
       </div>
-      
-      {/* Add custom scrollbar styles */}
-      <style jsx>{`
+
+      {/* Add custom scrollbar styles using standard React style approach */}
+      <style dangerouslySetInnerHTML={{__html: `
+        /* Apply custom scrollbar to specific elements with the class */
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
@@ -564,18 +685,34 @@ const Home = () => {
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #3B82F6;
+          background: #C94B4B;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #2563EB;
+          background: #A83A3A;
+        }
+        
+        /* Apply custom scrollbar to all scrollable elements */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #F9FAFB;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #C94B4B;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #A83A3A;
         }
         
         /* Apply font family throughout the component */
-        * {
+        .min-h-screen {
           font-family: 'Proxima Nova', 'Roboto', sans-serif;
         }
-      `}</style>
+      `}} />
     </div>
   );
 };
