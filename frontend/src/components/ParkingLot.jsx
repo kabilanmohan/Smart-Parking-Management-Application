@@ -121,10 +121,10 @@ const ParkingLot = () => {
         <h2 className="text-[#C94B4B] text-3xl font-semibold">{selectedSpot.name || "Parking Lot"}</h2>
         <p className="text-gray-700 text-lg font-medium mt-2">{selectedSpot.address || "Unknown Address"}</p>
 
-        {/* Date and Time Display */}
+        {/* Date and Time Display 
         <div className="absolute top-8 right-6 text-gray-800 text-xl font-medium">
           {dateTime.toLocaleString()}
-        </div>
+        </div>*/}
 
         <div className="flex space-x-8 mt-4">
           <div className="flex items-center space-x-2">
