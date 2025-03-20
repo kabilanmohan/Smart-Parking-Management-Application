@@ -16,6 +16,10 @@ import Loader from "./components/Loader";
 import PaymentHistory from "./components/PaymentHistory";
 import AdminLogin from "./components/AdminLogin"; // Import the new components
 import AdminDashboard from "./components/AdminDashboard";
+import PaymentForm from "./components/PaymentForm"; // Import PaymentForm
+import MyBookings from './components/MyBookings';
+import BookingsList from './components/BookingsList';
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -73,6 +77,8 @@ function App() {
         <Route path="/setup-parking" element={<ParkingSetup />} />
         <Route path="/parking-lot" element={<ParkingLot />} />
         <Route path="/payment_module" element={<App2 />} />
+        <Route path="/bookings" element={<MyBookings />} />
+        <Route path="/admin/bookings" element={<BookingsList />} />
         <Route path="/payment-history" element={user ? <PaymentHistory /> : <Navigate to="/dashboard" replace />} />
         <Route 
           path="/help-support" 
@@ -84,6 +90,19 @@ function App() {
         <Route 
           path="/admin-dashboard" 
           element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/admin-login" replace />} 
+        />
+        
+        {/* Payment Route */}
+        <Route
+          path="/payment"
+          element={
+            <PaymentForm
+              onPaymentSuccess={() => {
+                // Use Navigate component for redirection instead of navigate function
+                return <Navigate to="/payment-history" replace={true} />;
+              }}
+            />
+          }
         />
       </Routes>
     </Router>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
 import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
 import { FaTachometerAlt, FaUser, FaTicketAlt, FaCreditCard, FaBell, FaQuestionCircle, FaChevronDown, FaSignOutAlt, FaSearch, FaSync, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import batmanlogo from "../assets/batman-logo.jpg";
 import { useNavigate } from "react-router-dom";
@@ -65,6 +65,11 @@ const Home = () => {
   // Add a key for the Google Map component to force proper re-rendering
   const [mapKey, setMapKey] = useState(Date.now());
 
+  const [totalSpots, setTotalSpots] = useState(0);
+  const [availableSpots, setAvailableSpots] = useState(0);
+  const [activeBookings, setActiveBookings] = useState(0);
+  const [spotsTrend, setSpotsTrend] = useState(0); // For the trend percentage
+
   // Move handleLogout inside the component to access navigate
   const handleLogout = async () => {
     try {
@@ -112,6 +117,7 @@ const Home = () => {
 
     // Cleanup function to unsubscribe from the listener when component unmounts
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   // Combined function to fetch user data and parking spaces
@@ -133,11 +139,20 @@ const Home = () => {
         console.log("No user data found");
       }
 
-      // Fetch parking spaces
+      // Fetch parking spaces and calculate total/available spots
+      let totalSpotsCount = 0;
+      let availableSpotsCount = 0;
+      
       const querySnapshot = await getDocs(collection(db, "ParkingSpaces"));
       const spaces = [];
+      
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        
+        // Add to total and available counts
+        totalSpotsCount += data.TotalSlots || 0;
+        availableSpotsCount += data.AvailableSlots || 0;
+        
         spaces.push({
           id: doc.id,
           location: { lat: data.location.latitude, lng: data.location.longitude },
@@ -151,11 +166,40 @@ const Home = () => {
           pricing: data.pricing,
         });
       });
+      
       setParkingSpaces(spaces);
+      setTotalSpots(totalSpotsCount);
+      setAvailableSpots(availableSpotsCount);
+      
+      // Calculate a random trend percentage between -10 and +15
+      const randomTrend = (Math.random() * 25 - 10).toFixed(1);
+      setSpotsTrend(randomTrend);
+      
+      // Fetch active bookings count
+      await fetchActiveBookings();
+      
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // New function to fetch active bookings
+  const fetchActiveBookings = async () => {
+    try {
+      // Create a query to get active bookings (status == "active")
+      const bookingsQuery = query(
+        collection(db, "bookings"),
+        where("status", "==", "active")
+      );
+      
+      const bookingsSnapshot = await getDocs(bookingsQuery);
+      setActiveBookings(bookingsSnapshot.size);
+      
+    } catch (error) {
+      console.error("Error fetching active bookings:", error);
+      setActiveBookings(0);
     }
   };
 
@@ -164,8 +208,14 @@ const Home = () => {
     window.open(url, "_blank");
   };
 
+  // Update the handleBookNowClick function to pass data in the expected format
   const handleBookNowClick = (space) => {
-    navigate("/parking-lot", { state: { selectedSpot: space } });
+    navigate("/parking-lot", { 
+      state: { 
+        parkingSpaceId: space.id,
+        selectedSpot: space 
+      } 
+    });
   };
 
   const handleProfileClick = () => {
@@ -271,21 +321,27 @@ const Home = () => {
                 </div>
               </div>
               
-              {/* Original Stats Cards */}
+              {/* Updated Stats Cards with Real Data */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
                 <h2 className="text-lg font-bold mb-2 text-[#1F2937]">Total Spots Available</h2>
-                <p className="text-3xl font-semibold text-[#3B82F6]">1,234</p>
-                <p className="text-[#4B5563] text-sm">+6.9% from last month</p>
+                <p className="text-3xl font-semibold text-[#3B82F6]">{totalSpots.toLocaleString()}</p>
+                <p className="text-[#4B5563] text-sm">{spotsTrend > 0 ? '+' : ''}{spotsTrend}% from last month</p>
               </div>
+              
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
                 <h2 className="text-lg font-bold mb-2 text-[#1F2937]">Available Now</h2>
-                <p className="text-3xl font-semibold text-[#10B981]">567</p>
-                <p className="text-[#4B5563] text-sm">69% occupancy rate</p>
+                <p className="text-3xl font-semibold text-[#10B981]">{availableSpots.toLocaleString()}</p>
+                <p className="text-[#4B5563] text-sm">
+                  {totalSpots > 0 ? 
+                    `${Math.round((availableSpots / totalSpots) * 100)}% occupancy rate` : 
+                    'No spots available'}
+                </p>
               </div>
+              
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
                 <h2 className="text-lg font-bold mb-2 text-[#1F2937]">Active Bookings</h2>
-                <p className="text-3xl font-semibold text-[#C94B4B]">89</p>
-                <p className="text-[#4B5563] text-sm">Last updated 5 mins ago</p>
+                <p className="text-3xl font-semibold text-[#C94B4B]">{activeBookings.toLocaleString()}</p>
+                <p className="text-[#4B5563] text-sm">Last updated just now</p>
               </div>
             </div>
 

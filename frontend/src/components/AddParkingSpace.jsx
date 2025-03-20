@@ -295,7 +295,7 @@ const AddParkingSpace = ({ onBack }) => {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#4B5563] mb-1 flex items-center">
+                <label className="block text-sm font-medium text-[#4B5563] mb-1 items-center">
                   <FaCar className="mr-1 text-[#C94B4B]" />
                   Car Rate ($/hr)
                 </label>
@@ -311,7 +311,7 @@ const AddParkingSpace = ({ onBack }) => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#4B5563] mb-1 flex items-center">
+                <label className="block text-sm font-medium text-[#4B5563] mb-1 items-center">
                   <FaMotorcycle className="mr-1 text-[#3B82F6]" />
                   Bike Rate ($/hr)
                 </label>

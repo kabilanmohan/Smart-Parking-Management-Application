@@ -1,18 +1,41 @@
-import { useState } from "react";
-import { db } from "../firebase";
-import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { db, auth } from "../firebase"; // Add auth import here
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  addDoc, 
+  serverTimestamp, 
+  doc, 
+  getDoc, 
+  updateDoc 
+} from "firebase/firestore";
 import PropTypes from 'prop-types';
 
 const PaymentForm = ({ onPaymentSuccess }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const parkingData = location.state || {};
+  
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [name, setName] = useState("");
   const [discountCode, setDiscountCode] = useState("");
-  const [amount, setAmount] = useState(50);
-  const [finalAmount, setFinalAmount] = useState(50);
+  const [amount, setAmount] = useState(parkingData.totalPrice || 50);
+  const [finalAmount, setFinalAmount] = useState(parkingData.totalPrice || 50);
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Update the amount if parkingData changes
+  useEffect(() => {
+    if (parkingData.totalPrice) {
+      setAmount(parkingData.totalPrice);
+      setFinalAmount(parkingData.totalPrice);
+    }
+  }, [parkingData.totalPrice]);
 
   const applyDiscount = async () => {
     if (!discountCode) return 0;
@@ -54,21 +77,133 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     const newFinalAmount = Math.max(amount - discount, 0);
     setFinalAmount(newFinalAmount);
 
-    const transaction = {
-      name,
-      cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
-      amount: newFinalAmount,
-      date: new Date(),
-    };
-
     try {
-      await addDoc(collection(db, "transactions"), transaction);
+      // Get current user
+      const currentUser = auth.currentUser;
+      
+      // Current time for booking
+      const now = new Date();
+      
+      // Calculate checkout time based on hours booked
+      const checkoutTime = new Date(now);
+      checkoutTime.setHours(checkoutTime.getHours() + (parkingData.hours || 1));
+      
+      // Create transaction record
+      const transaction = {
+        name: parkingData.parkingSpaceName || name,
+        cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, "").slice(-4)}`,
+        amount: newFinalAmount,
+        date: now,
+        vehicleType: parkingData.vehicleType || "Car",
+        spotNumber: parkingData.spotNumber || "Unknown",
+        location: parkingData.parkingSpaceName || "Unknown location",
+        status: "completed",
+        duration: `${parkingData.hours || 1} hours`,
+        cardType: cardNumber.startsWith("4") ? "VISA" : 
+                  cardNumber.startsWith("5") ? "MasterCard" : 
+                  cardNumber.startsWith("3") ? "Amex" : "Other"
+      };
+
+      // Add transaction to Firestore
+      const transactionRef = await addDoc(collection(db, "transactions"), transaction);
+      
+      // Create booking record with user info from Firebase Auth
+      const booking = {
+        userId: currentUser ? currentUser.uid : 'anonymous',
+        userEmail: currentUser ? currentUser.email : 'anonymous',
+        parkingSpaceId: parkingData.parkingSpaceId,
+        parkingSpaceName: parkingData.parkingSpaceName,
+        spotNumber: parkingData.spotNumber,
+        vehicleType: parkingData.vehicleType,
+        transactionId: transactionRef.id,
+        amount: newFinalAmount,
+        hours: parkingData.hours || 1,
+        status: "active",
+        checkinTime: now,
+        checkoutTime: checkoutTime,
+        createdAt: serverTimestamp(),
+        slotDetails: parkingData.selectedSlot || {},
+        parkingLevel: parkingData.selectedSlot?.level || 1
+      };
+      
+      // Add booking to Firestore
+      const bookingRef = await addDoc(collection(db, "bookings"), booking);
+      
+      // Update the slot's availability in ParkingSlots collection
+      if (parkingData.parkingSpaceId && parkingData.selectedSlot) {
+        const { level, row, col } = parkingData.selectedSlot;
+        
+        // Get the ParkingSlots document
+        const parkingSlotsRef = doc(db, "ParkingSlots", parkingData.parkingSpaceId);
+        const parkingSlotsDoc = await getDoc(parkingSlotsRef);
+        
+        if (parkingSlotsDoc.exists()) {
+          const parkingSlotsData = parkingSlotsDoc.data();
+          
+          // Make sure the required paths exist in the data
+          if (parkingSlotsData.levels && 
+              parkingSlotsData.levels[level] && 
+              parkingSlotsData.levels[level].availability) {
+            
+            // Find the row in availability data
+            const availabilityRow = parkingSlotsData.levels[level].availability.find(
+              r => r.rows === row
+            );
+            
+            if (availabilityRow && availabilityRow.cols && availabilityRow.cols[col]) {
+              // Create a deep copy of the data
+              const updatedData = JSON.parse(JSON.stringify(parkingSlotsData));
+              
+              // Update the isOccupied status and add booking reference
+              updatedData.levels[level].availability.find(r => r.rows === row).cols[col] = {
+                ...availabilityRow.cols[col],
+                isOccupied: true,
+                bookingId: bookingRef.id,
+                checkoutTime: checkoutTime.toISOString()
+              };
+              
+              // Update the document in Firestore
+              await updateDoc(parkingSlotsRef, updatedData);
+              
+              console.log(`Updated slot L${level}R${row}C${col} to occupied status`);
+            }
+          }
+        }
+
+        // Also update the ParkingSpaces document to decrease available slots count
+        try {
+          const parkingSpaceRef = doc(db, "ParkingSpaces", parkingData.parkingSpaceId);
+          const parkingSpaceDoc = await getDoc(parkingSpaceRef);
+          
+          if (parkingSpaceDoc.exists()) {
+            const spaceData = parkingSpaceDoc.data();
+            const availableSlots = Math.max((spaceData.AvailableSlots || 0) - 1, 0);
+            
+            await updateDoc(parkingSpaceRef, {
+              AvailableSlots: availableSlots,
+              updatedAt: serverTimestamp()
+            });
+          }
+        } catch (error) {
+          console.error("Error updating available slots count:", error);
+        }
+      }
+      
+      // Call the success callback
       onPaymentSuccess(transaction);
-      alert("Payment Successful!");
+      
+      // Show success message
+      alert("Payment Successful! Your booking has been confirmed.");
+      
+      // Reset form
       resetForm();
+      
+      // Redirect to home page
+      navigate("/dashboard");
+      
     } catch (error) {
-      console.error("Error processing payment:", error);
-      setError("Payment failed. Please try again.");
+      console.error("Error processing payment or creating booking:", error);
+      setError("Payment or booking creation failed. Please try again.");
     }
 
     setIsProcessing(false);
@@ -112,6 +247,18 @@ const PaymentForm = ({ onPaymentSuccess }) => {
       <h2 className="text-2xl font-bold text-center mb-6 text-[#1F2937] relative">
         <span className="relative after:content-[''] after:absolute after:-bottom-2 after:left-1/4 after:w-1/2 after:h-1 after:bg-[#3B82F6] after:rounded-full">Payment Details</span>
       </h2>
+      
+      {/* Parking summary section - Add this */}
+      {parkingData.parkingSpaceName && (
+        <div className="mb-6 p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
+          <h3 className="font-medium text-[#1F2937] mb-2">Booking Details</h3>
+          <p className="text-sm text-[#4B5563]"><span className="font-medium">Parking:</span> {parkingData.parkingSpaceName}</p>
+          <p className="text-sm text-[#4B5563]"><span className="font-medium">Spot:</span> {parkingData.spotNumber}</p>
+          <p className="text-sm text-[#4B5563]"><span className="font-medium">Vehicle:</span> {parkingData.vehicleType}</p>
+          <p className="text-sm text-[#4B5563]"><span className="font-medium">Duration:</span> {parkingData.hours} hour{parkingData.hours !== 1 ? 's' : ''}</p>
+          <p className="text-sm font-bold text-[#1F2937] mt-2">Total: ${parkingData.totalPrice?.toFixed(2)}</p>
+        </div>
+      )}
 
       {/* Card Number Input */}
       <div className="mb-6">

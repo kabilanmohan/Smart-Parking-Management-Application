@@ -10,6 +10,9 @@ import AdminComplaints from "./AdminComplaints";
 import AdminUsers from "./AdminUsers";
 import AddParkingSpace from "./AddParkingSpace";
 import ParkingGridSetup from "./ParkingGridSetup";
+import ParkingSpacesList from "./ParkingSpacesList";
+import BookingsList from "./BookingsList";
+import AdminPaymentReports from "./AdminPaymentReports";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -364,6 +367,10 @@ const AdminDashboard = () => {
             <AdminUsers />
           )}
 
+            {activeMenuItem === "payments" && (
+            <AdminPaymentReports />
+            )}
+
           {activeMenuItem === "add-parking" && (
             <AddParkingSpace 
               onBack={() => setActiveMenuItem("dashboard")} 
@@ -378,6 +385,22 @@ const AdminDashboard = () => {
               totalLevels={totalLevels}
             />
           )}
+
+          {activeMenuItem === "parking" && (
+            <ParkingSpacesList 
+              parkingSpaces={parkingSpaces}
+              onAddNew={() => setActiveMenuItem("add-parking")}
+              onSetupGrid={(id, levels) => {
+                setParkingSpaceId(id);
+                setTotalLevels(levels);
+                setActiveMenuItem("setup-grid");
+              }}
+            />
+          )}
+
+            {activeMenuItem === "bookings" && (
+            <BookingsList />
+            )}
 
           {/* Add other sections as needed */}
         </div>
