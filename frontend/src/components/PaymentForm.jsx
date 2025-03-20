@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
@@ -133,8 +134,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
       {/* Expiry Date Input */}
       <div className="mb-6">
-        <label className="block font-medium mb-2 text-[#1F2937]">Expiry Date 📅</label>
+        <label htmlFor="expiry-date" className="block font-medium mb-2 text-[#1F2937]">Expiry Date 📅</label>
         <input
+          id ="expiry-date"
           type="month"
           value={expiryDate}
           onChange={(e) => setExpiryDate(e.target.value)}

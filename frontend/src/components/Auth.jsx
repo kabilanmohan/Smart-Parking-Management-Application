@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Add this import
 import {
@@ -10,8 +11,7 @@ import {
 import { auth } from "../firebase";
 import batmanParkingImage from "../assets/batman-parking2.jpeg";
 import { FaGoogle, FaApple, FaFacebook, FaUser, FaPhone, FaCar, FaCogs, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaParking, FaCarSide, FaCarAlt, FaMapMarkerAlt, FaArrowLeft } from "react-icons/fa";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, doc, setDoc, getDoc, updateDoc } from "../firebase";
 
 const Auth = () => {
   const navigate = useNavigate(); // Initialize navigate

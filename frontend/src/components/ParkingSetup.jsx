@@ -1,4 +1,5 @@
-
+import React from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const ParkingSetup = () => {
@@ -76,6 +77,7 @@ const ParkingSetup = () => {
               return (
                 <div
                   key={slotIndex}
+                  data-testid={`parking-slot-${slotIndex}`}
                   className={`w-24 h-36 flex items-center justify-center text-lg font-bold cursor-pointer border-2 rounded-md transition-all 
                     ${slotType === "" ? "bg-gray-900 border-gray-700"
                       : slotType === "car" ? "bg-yellow-500 border-yellow-600 text-black"

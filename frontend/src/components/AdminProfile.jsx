@@ -1,3 +1,4 @@
+import React from "react";
 import StatsCard from "./StatsCard";
 import { FaUsers, FaCar, FaClipboardList } from "react-icons/fa";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
