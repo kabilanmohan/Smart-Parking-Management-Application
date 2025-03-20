@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import batmanlogosvg from "../assets/batmanlogosvg.svg";
 import { auth } from "../firebase";
-import { FaParking, FaClock, FaMapMarkerAlt, FaShieldAlt, FaMobileAlt } from "react-icons/fa";
+import { FaParking, FaClock, FaMapMarkerAlt, FaShieldAlt, FaMobileAlt, FaUserShield } from "react-icons/fa";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -42,6 +42,16 @@ const LandingPage = () => {
             onClick={handleEnterClick}
           >
             Enter the Batcave
+          </button>
+
+          <button
+            onClick={() => navigate("/admin-login")}
+            className="mt-4 px-8 py-3 bg-transparent text-[#4B5563] font-medium rounded-xl
+            border border-[#4B5563] hover:bg-[#F9FAFB] transition-all duration-300
+            flex items-center justify-center"
+          >
+            <FaUserShield className="mr-2" />
+            Admin Login
           </button>
 
           {/* Feature Grid */}
