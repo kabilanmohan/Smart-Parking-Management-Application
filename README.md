@@ -33,4 +33,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-For any questions or feedback, please feel free to reach out!  
+For any questions or feedback, please feel free to reach out...
