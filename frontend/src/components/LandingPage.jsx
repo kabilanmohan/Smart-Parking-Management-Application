@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import batmanlogosvg from "../assets/batmanlogosvg.svg";
 import { auth } from "../firebase";

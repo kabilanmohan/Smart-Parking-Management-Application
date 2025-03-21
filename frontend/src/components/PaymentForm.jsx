@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase"; // Add auth import here
@@ -10,7 +11,8 @@ import {
   serverTimestamp, 
   doc, 
   getDoc, 
-  updateDoc 
+  updateDoc,
+  getFirestore
 } from "firebase/firestore";
 import PropTypes from 'prop-types';
 
@@ -262,8 +264,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
       {/* Card Number Input */}
       <div className="mb-6">
-        <label className="block font-medium mb-2 text-[#1F2937]">Card Number 💳</label>
+        <label htmlFor="cardNumber" className="block font-medium mb-2 text-[#1F2937]">Card Number 💳</label>
         <input
+          id="cardNumber"
           type="text"
           value={cardNumber}
           onChange={(e) => {
@@ -280,8 +283,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
       {/* Expiry Date Input */}
       <div className="mb-6">
-        <label className="block font-medium mb-2 text-[#1F2937]">Expiry Date 📅</label>
+        <label htmlFor="expDate" className="block font-medium mb-2 text-[#1F2937]">Expiry Date 📅</label>
         <input
+          id="expDate"
           type="month"
           value={expiryDate}
           onChange={(e) => setExpiryDate(e.target.value)}
@@ -293,8 +297,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
       {/* CVV Input */}
       <div className="mb-6">
-        <label className="block font-medium mb-2 text-[#1F2937]">CVV 🔒</label>
+        <label htmlFor="cv" className="block font-medium mb-2 text-[#1F2937]">CVV 🔒</label>
         <input
+          id = "cv"
           type="text"
           value={cvv}
           onChange={(e) => {
@@ -311,8 +316,9 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
       {/* Cardholder Name Input */}
       <div className="mb-6">
-        <label className="block font-medium mb-2 text-[#1F2937]">Cardholder Name</label>
+        <label htmlFor="CardName" className="block font-medium mb-2 text-[#1F2937]">Cardholder Name</label>
         <input
+          id = "CardName"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
