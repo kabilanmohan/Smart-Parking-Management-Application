@@ -262,15 +262,24 @@ const Home = () => {
 
   // Close search results when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.search-container')) {
-        setShowSearchResults(false);
+    // Handle clicks within the sidebar
+    const handleMenuClick = (event) => {
+      const sidebar = document.querySelector('aside');
+      const menuButton = event.target.closest('button');
+      
+      if (isSidebarOpen && sidebar && sidebar.contains(event.target)) {
+        // Check if click is on empty space (not a button and not the scrollbar)
+        if (!menuButton && event.clientX < sidebar.offsetWidth) {
+          setIsSidebarOpen(false);
+        }
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('click', handleMenuClick);
+    return () => {
+      document.removeEventListener('click', handleMenuClick);
+    };
+  }, [isSidebarOpen]);
 
   // Render content based on active menu item
   const renderContent = () => {
