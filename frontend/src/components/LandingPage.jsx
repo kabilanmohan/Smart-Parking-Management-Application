@@ -99,12 +99,12 @@ const LandingPage = () => {
           {/* Stats Section */}
           <div className="grid md:grid-cols-3 gap-8 mb-20">
             <div className="stat-card text-center p-6">
-              <div className="text-4xl font-bold text-[#C94B4B] mb-2">Parking Spots</div>
-              <div className="text-[#4B5563]">Across City</div>
-            </div>
-            <div className="stat-card text-center p-6">
               <div className="text-4xl font-bold text-[#C94B4B] mb-2">24/7</div>
               <div className="text-[#4B5563]">Security Monitoring</div>
+            </div>
+            <div className="stat-card text-center p-6">
+              <div className="text-4xl font-bold text-[#C94B4B] mb-2">Parking Spots</div>
+              <div className="text-[#4B5563]">Across City</div>
             </div>
             <div className="stat-card text-center p-6">
               <div className="text-4xl font-bold text-[#C94B4B] mb-2">100%</div>
