@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import batmanlogosvg from "../assets/batmanlogosvg.svg";
 import { auth } from "../firebase";
-import { FaParking, FaClock, FaMapMarkerAlt, FaShieldAlt, FaMobileAlt } from "react-icons/fa";
+import { FaParking, FaClock, FaMapMarkerAlt, FaShieldAlt, FaMobileAlt, FaUserShield } from "react-icons/fa";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -35,15 +35,32 @@ const LandingPage = () => {
           <p className="text-xl text-[#4B5563]/90 font-medium mb-8">
             Smart Parking Solutions for Modern Cities
           </p>
+<button
+          className="px-8 py-4 bg-[#C94B4B] text-white font-semibold rounded-xl
+          hover:bg-[#C94B4B]/90 transition-all duration-300 shadow-md
+          hover:scale-105 hover:shadow-lg active:scale-95 mb-4"
+          onClick={handleEnterClick}
+        >
+          Enter the Batcave
+        </button>
 
+        {/* Centered Admin Login Button with matching hover effect */}
+        <div className="w-full flex justify-center mb-4">
           <button
-            className="px-8 py-4 bg-[#C94B4B] text-white font-semibold rounded-xl
-            hover:bg-[#C94B4B]/90 transition-all duration-300 shadow-md
-            hover:scale-105 hover:shadow-lg active:scale-95 mb-16"
-            onClick={handleEnterClick}
+            onClick={() => navigate("/admin-login")}
+            className="px-8 py-3 bg-transparent text-[#4B5563] font-medium rounded-xl
+            border border-[#4B5563] hover:bg-[#F9FAFB] transition-all duration-300
+            flex items-center justify-center hover:scale-105 hover:shadow-lg active:scale-95"
           >
-            Enter the Batcave
+            <FaUserShield className="mr-2" />
+            Admin Login
           </button>
+        </div>
+
+{/* Feature Grid - Adjusted margin-top */}
+<div className="grid md:grid-cols-3 gap-8 mt-4 mb-20">  {/* Added mt-4 here */}
+  {/* ... feature cards content remains the same ... */}
+</div>
 
           {/* Feature Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-20">

@@ -2,5 +2,8 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "kabilanmohan",
         "projectKey": "kabilanmohan_Smart-Parking-Management-Application"
+    },
+    "files.watcherExclude": {
+        "**/target": true
     }
 }
