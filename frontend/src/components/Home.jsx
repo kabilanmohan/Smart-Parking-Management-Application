@@ -625,17 +625,27 @@ const Home = () => {
       </aside>
 
       {/* Sidebar Toggle Button - Half arrow shape on the edge with increased visibility */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-[#C94B4B] h-24 w-8 rounded-r-lg shadow-md flex items-center justify-center z-50 border border-l-0 border-[#C94B4B] hover:bg-[#C94B4B]/80 transition-colors"
-        aria-label="Toggle sidebar"
-      >
-        {isSidebarOpen ? (
-          <FaChevronLeft size={18} className="text-white" />
-        ) : (
-          <FaChevronRight size={18} className="text-white" />
-        )}
-      </button>
+      {/* Sidebar Toggle Button - Smoother transition */}
+<button
+  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+  className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-[#C94B4B] h-24 w-8 rounded-r-lg shadow-md flex items-center justify-center z-50 border border-l-0 border-[#C94B4B] hover:bg-[#C94B4B]/80 transition-colors group"
+  aria-label="Toggle sidebar"
+>
+  <div className="relative w-5 h-5 flex items-center justify-center">
+    <FaChevronRight 
+      size={18} 
+      className={`text-white absolute transition-all duration-300 ${
+        isSidebarOpen ? 'rotate-180 opacity-0' : 'rotate-0 opacity-100'
+      }`}
+    />
+    <FaChevronLeft 
+      size={18} 
+      className={`text-white absolute transition-all duration-300 ${
+        isSidebarOpen ? 'rotate-0 opacity-100' : '-rotate-180 opacity-0'
+      }`}
+    />
+  </div>
+</button>
 
       {/* Main Content */}
       <div
