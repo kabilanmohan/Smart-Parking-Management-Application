@@ -618,14 +618,23 @@ const Home = () => {
       {/* Sidebar Toggle Button - Half arrow shape on the edge with increased visibility */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-[#C94B4B] h-24 w-8 rounded-r-lg shadow-md flex items-center justify-center z-50 border border-l-0 border-[#C94B4B] hover:bg-[#C94B4B]/80 transition-colors"
+        className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-[#C94B4B] h-24 w-8 rounded-r-lg shadow-md flex items-center justify-center z-50 border border-l-0 border-[#C94B4B] hover:bg-[#C94B4B]/80 transition-colors group"
         aria-label="Toggle sidebar"
       >
-        {isSidebarOpen ? (
-          <FaChevronLeft size={18} className="text-white" />
-        ) : (
-          <FaChevronRight size={18} className="text-white" />
-        )}
+        <div className="relative w-5 h-5 flex items-center justify-center">
+          <FaChevronRight 
+            size={18} 
+            className={`text-white absolute transition-all duration-300 ${
+              isSidebarOpen ? 'rotate-180 opacity-0' : 'rotate-0 opacity-100'
+            }`}
+          />
+          <FaChevronLeft 
+            size={18} 
+            className={`text-white absolute transition-all duration-300 ${
+              isSidebarOpen ? 'rotate-0 opacity-100' : '-rotate-180 opacity-0'
+            }`}
+          />
+        </div>
       </button>
 
       {/* Main Content */}
@@ -689,34 +698,40 @@ const Home = () => {
 
           {/* Profile Dropdown */}
           <div className="relative">
-            <button
-              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="flex items-center space-x-3 bg-[#F9FAFB] p-2 rounded-lg hover:bg-[#DBEAFE] transition-colors border border-[#E5E7EB]"
-            >
-              <img
-                src={userData?.profileImageUrl || batmanlogo}
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover border-2 border-[#C94B4B]"
-              />
-              <span className="font-medium text-[#1F2937]">{userData?.name || "User"}</span>
-              <FaChevronDown className="text-[#4B5563]" />
-            </button>
-            {showProfileDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden z-10 border border-[#E5E7EB]">
-                <button 
-                  onClick={handleProfileClick} 
-                  className="block w-full text-left px-4 py-2 hover:bg-[#DBEAFE] transition-colors text-[#1F2937]"
-                >
-                  View Profile
-                </button>
-                <button 
-                  className="block w-full text-left px-4 py-2 hover:bg-[#DBEAFE] transition-colors text-[#1F2937]"
-                >
-                  Settings
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+            className="flex items-center space-x-3 bg-[#F9FAFB] p-2 rounded-lg hover:bg-[#DBEAFE] transition-colors border border-[#E5E7EB]"
+          >
+            <img
+              src={userData?.profileImageUrl || batmanlogo}
+              alt="Profile"
+              className="w-8 h-8 rounded-full object-cover border-2 border-[#C94B4B]"
+            />
+            <span className="font-medium text-[#1F2937]">{userData?.name || "User"}</span>
+            <FaChevronDown className="text-[#4B5563]" />
+          </button>
+          {showProfileDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden z-10 border border-[#E5E7EB]">
+              <button 
+                onClick={handleProfileClick} 
+                className="block w-full text-left px-4 py-2 hover:bg-[#DBEAFE] transition-colors text-[#1F2937]"
+              >
+                View Profile
+              </button>
+              <button 
+                className="block w-full text-left px-4 py-2 hover:bg-[#DBEAFE] transition-colors text-[#1F2937]"
+              >
+                Settings
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 hover:bg-[#DBEAFE] transition-colors text-[#1F2937]"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
         </header>
         {/* Content area with padding for fixed header */}
         <div className="pt-20 md:pt-24">
