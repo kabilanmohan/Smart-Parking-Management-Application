@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import batmanlogosvg from "../assets/batmanlogosvg.svg";
 import { auth } from "../firebase";
@@ -40,7 +41,7 @@ const LandingPage = () => {
           hover:scale-105 hover:shadow-lg active:scale-95 mb-4"
           onClick={handleEnterClick}
         >
-          Enter the Batcave
+          User Login
         </button>
 
         {/* Centered Admin Login Button with matching hover effect */}
@@ -99,15 +100,15 @@ const LandingPage = () => {
           {/* Stats Section */}
           <div className="grid md:grid-cols-3 gap-8 mb-20">
             <div className="stat-card text-center p-6">
-              <div className="text-4xl font-bold text-[#C94B4B] mb-2">5000+</div>
-              <div className="text-[#4B5563]">Parking Spots</div>
-            </div>
-            <div className="stat-card text-center p-6">
               <div className="text-4xl font-bold text-[#C94B4B] mb-2">24/7</div>
               <div className="text-[#4B5563]">Security Monitoring</div>
             </div>
             <div className="stat-card text-center p-6">
-              <div className="text-4xl font-bold text-[#C94B4B] mb-2">98%</div>
+              <div className="text-4xl font-bold text-[#C94B4B] mb-2">Parking Spots</div>
+              <div className="text-[#4B5563]">Across City</div>
+            </div>
+            <div className="stat-card text-center p-6">
+              <div className="text-4xl font-bold text-[#C94B4B] mb-2">100%</div>
               <div className="text-[#4B5563]">Customer Satisfaction</div>
             </div>
           </div>
@@ -136,7 +137,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="w-full bg-[#1F2937] text-white py-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">&copy; 2025 Gotham Parking. All rights reserved.</p>
+          <p className="mb-4">&copy; 2025 ParkGrid. All rights reserved.</p>
           <div className="flex justify-center space-x-6">
             <a href="#privacy" className="hover:text-[#C94B4B] transition-colors">Privacy Policy</a>
             <a href="#terms" className="hover:text-[#C94B4B] transition-colors">Terms of Service</a>
