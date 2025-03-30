@@ -5,5 +5,8 @@
     },
     "files.watcherExclude": {
         "**/target": true
-    }
+    },
+    "cSpell.words": [
+        "firestore"
+    ]
 }
