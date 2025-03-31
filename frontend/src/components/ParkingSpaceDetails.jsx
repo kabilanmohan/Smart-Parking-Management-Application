@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { FaMapMarkerAlt, FaStar, FaCarAlt, FaParking, FaRegClock, FaArrowLeft, FaRoute, FaCalendarCheck, FaRegStar, FaComment, FaChevronDown, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaLanguage, FaGlobe } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaCarAlt, FaParking, FaRegClock, FaArrowLeft, FaRoute, FaCalendarCheck, FaRegStar, FaComment, FaChevronDown, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaLanguage, FaGlobe, FaBell } from 'react-icons/fa';
 import { auth, db } from '../firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
   // Existing state variables
@@ -28,6 +28,9 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
     type: 'success', // 'success', 'error', or 'warning'
     message: '',
   });
+
+  const [isNotifying, setIsNotifying] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // Fetch feedbacks when component mounts or when space changes
   useEffect(() => {
@@ -61,6 +64,30 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showLanguageDropdown]);
+
+  // Check if user is already subscribed to notifications for this space
+  useEffect(() => {
+    const checkNotificationStatus = async () => {
+      if (!auth.currentUser || !space?.id) return;
+      
+      try {
+        const notificationsRef = collection(db, "notifications");
+        const q = query(
+          notificationsRef, 
+          where("userId", "==", auth.currentUser.uid),
+          where("parkingSpaceId", "==", space.id),
+          where("active", "==", true)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        setIsSubscribed(!querySnapshot.empty);
+      } catch (error) {
+        console.error("Error checking notification status:", error);
+      }
+    };
+    
+    checkNotificationStatus();
+  }, [space?.id]);
 
   // Function to fetch feedbacks from Firestore
   const fetchFeedbacks = async () => {
@@ -194,6 +221,79 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle the notification subscription
+  const handleNotifyMe = async () => {
+    if (!auth.currentUser) {
+      setStatusNotification({
+        show: true,
+        type: 'warning',
+        message: 'You must be logged in to receive notifications'
+      });
+      return;
+    }
+
+    try {
+      setIsNotifying(true);
+      
+      if (isSubscribed) {
+        // Cancel notification
+        const notificationsRef = collection(db, "notifications");
+        const q = query(
+          notificationsRef, 
+          where("userId", "==", auth.currentUser.uid),
+          where("parkingSpaceId", "==", space.id),
+          where("active", "==", true)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        // Delete all active notifications for this space
+        const deletePromises = [];
+        querySnapshot.forEach((doc) => {
+          deletePromises.push(deleteDoc(doc.ref));
+        });
+        
+        await Promise.all(deletePromises);
+        setIsSubscribed(false);
+        
+        setStatusNotification({
+          show: true,
+          type: 'success',
+          message: 'Notification canceled successfully'
+        });
+      } else {
+        // Create new notification request
+        await addDoc(collection(db, "notifications"), {
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email,
+          userName: auth.currentUser.displayName || '',
+          parkingSpaceId: space.id, 
+          parkingSpaceName: space.name,
+          createdAt: serverTimestamp(),
+          active: true,
+          notificationType: 'availability',
+        });
+        
+        setIsSubscribed(true);
+        
+        setStatusNotification({
+          show: true,
+          type: 'success',
+          message: 'You will be notified when spots become available'
+        });
+      }
+    } catch (error) {
+      console.error('Error managing notification subscription:', error);
+      setStatusNotification({
+        show: true,
+        type: 'error',
+        message: 'Failed to set up notification. Please try again.'
+      });
+    } finally {
+      setIsNotifying(false);
     }
   };
 
@@ -581,13 +681,35 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
           <FaRoute className="mr-2" />
           Get Directions
         </button>
-        <button
-          onClick={() => onBookNow(space)}
-          className="flex items-center justify-center bg-[#C94B4B] text-white py-3 rounded-lg hover:bg-[#C94B4B]/80 transition-colors"
-        >
-          <FaCalendarCheck className="mr-2" />
-          Book Now
-        </button>
+        
+        {Number(space.spots) > 0 ? (
+          <button
+            onClick={() => onBookNow(space)}
+            className="flex items-center justify-center bg-[#C94B4B] text-white py-3 rounded-lg hover:bg-[#C94B4B]/80 transition-colors"
+          >
+            <FaCalendarCheck className="mr-2" />
+            Book Now
+          </button>
+        ) : (
+          <button
+            onClick={handleNotifyMe}
+            disabled={isNotifying}
+            className={`flex items-center justify-center py-3 rounded-lg transition-colors ${
+              isNotifying 
+                ? "bg-gray-400 text-white cursor-not-allowed" 
+                : isSubscribed
+                  ? "bg-green-500 hover:bg-green-600 text-white"
+                  : "bg-[#8373BF] hover:bg-[#8373BF]/80 text-white"
+            }`}
+          >
+            <FaBell className="mr-2" />
+            {isNotifying 
+              ? "Processing..." 
+              : isSubscribed 
+                ? "Cancel Notification" 
+                : "Notify When Available"}
+          </button>
+        )}
       </div>
     </div>
   );

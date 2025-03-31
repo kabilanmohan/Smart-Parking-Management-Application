@@ -17,9 +17,11 @@
     "dotenv": "^16.4.7",
     "express": "~4.16.1",
     "firebase": "^11.3.1",
+    "firebase-admin": "^13.2.0",
     "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0"
   },
   "devDependencies": {
@@ -45,9 +47,18 @@
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
-    "moduleDirectories": ["node_modules", "<rootDir>"],
-    "setupFilesAfterEnv": ["./tests/setup.js"],
-    "testPathIgnorePatterns": ["/node_modules/"],
-    "coveragePathIgnorePatterns": ["/node_modules/"]
+    "moduleDirectories": [
+      "node_modules",
+      "<rootDir>"
+    ],
+    "setupFilesAfterEnv": [
+      "./tests/setup.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }

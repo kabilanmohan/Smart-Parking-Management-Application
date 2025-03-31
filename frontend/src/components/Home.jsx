@@ -159,7 +159,7 @@ const Home = () => {
           name: data.Name,
           address: data.Address || "No address provided",
           price: `$${data.pricing.car}/hour`,
-          spots: data.TotalSlots,
+          spots: data.AvailableSlots,
           distance: "0.3 miles",
           rating: data.averageRating,
           levels: data.levels,
