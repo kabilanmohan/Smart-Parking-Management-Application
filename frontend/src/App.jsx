@@ -20,7 +20,7 @@ import PaymentForm from "./components/PaymentForm"; // Import PaymentForm
 import MyBookings from './components/MyBookings';
 import BookingsList from './components/BookingsList';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
-
+import NotificationHistory from "./components/NotificationHistory";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -77,6 +77,7 @@ function App() {
             element={user ? <Navigate to="/dashboard" replace /> : <Auth />}
           />
           <Route path="/admin" element={<AdminProfile />} />
+          <Route path = "/alerts" element = {<NotificationHistory/>}/>
           <Route 
             path="/profile" 
             element={user ? <UserProfile /> : <Navigate to="/login" replace />} 
