@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaDownload, FaPrint, FaEye, FaSort, FaFilter, FaSearch } from "react-icons/fa";
-import { db } from "../firebase";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import Papa from "papaparse";
@@ -21,9 +21,24 @@ const PaymentHistory = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const q = query(collection(db, "transactions"), orderBy("date", "desc"));
+        setLoading(true);
+        const currentUser = auth.currentUser;
+        
+        if (!currentUser) {
+          console.error("No authenticated user");
+          setTransactions([]);
+          return;
+        }
+        
+        // Query transactions for the current user
+        const q = query(
+          collection(db, "transactions"),
+          where("userId", "==", currentUser.uid),
+          orderBy("date", "desc")
+        );
+        
         const querySnapshot = await getDocs(q);
-
+        
         const data = querySnapshot.docs.map((doc) => {
           const transaction = doc.data();
           return {
@@ -32,106 +47,11 @@ const PaymentHistory = () => {
             date: transaction.date?.toDate() || new Date(),
           };
         });
-
+        
         setTransactions(data || []);
       } catch (error) {
         console.error("Error fetching transactions:", error);
-        
-        // Fallback to mock data for development if Firebase fetch fails
-        const mockTransactions = [
-          {
-            id: "TX789012",
-            date: new Date(2025, 2, 15, 14, 30),
-            name: "Wayne Tower Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 25.00,
-            duration: "4 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "A-123",
-            location: "Downtown Gotham, 1007 Mountain Drive"
-          },
-          {
-            id: "TX789013",
-            date: new Date(2025, 2, 14, 10, 15),
-            name: "Arkham City Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 18.50,
-            duration: "3 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "B-045",
-            location: "East Side, 900 Crime Alley"
-          },
-          {
-            id: "TX789014",
-            date: new Date(2025, 2, 12, 9, 0),
-            name: "Gotham Heights Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 15.00,
-            duration: "2.5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "C-198",
-            location: "North Gotham, 123 Bat Street"
-          },
-          {
-            id: "TX789015",
-            date: new Date(2025, 2, 10, 18, 45),
-            name: "Wayne Tower Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 12.00,
-            duration: "2 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "A-056",
-            location: "Downtown Gotham, 1007 Mountain Drive"
-          },
-          {
-            id: "TX789016",
-            date: new Date(2025, 2, 8, 13, 20),
-            name: "Gotham Central Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 30.00,
-            duration: "5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "D-012",
-            location: "Central Gotham, 42 Wayne Avenue"
-          },
-          {
-            id: "TX789017",
-            date: new Date(2025, 2, 5, 8, 10),
-            name: "Arkham City Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 10.50,
-            duration: "1.5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "B-134",
-            location: "East Side, 900 Crime Alley"
-          },
-          {
-            id: "TX789018",
-            date: new Date(2025, 2, 1, 15, 0),
-            name: "Wayne Tower Parking",
-            cardNumber: "**** **** **** 4567",
-            cardType: "VISA",
-            amount: 28.00,
-            duration: "4.5 hours",
-            status: "completed",
-            vehicleType: "Car",
-            spotNumber: "A-003",
-            location: "Downtown Gotham, 1007 Mountain Drive"
-          },
-        ];
-        setTransactions(mockTransactions);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }
@@ -173,7 +93,7 @@ const PaymentHistory = () => {
           lineWidth: 0.25,
         },
         headStyles: {
-          fillColor: [59, 130, 246],
+          fillColor: [16, 185, 129], // Green color instead of blue
           textColor: [255, 255, 255],
           fontSize: 9,
           fontStyle: 'bold'
@@ -183,7 +103,6 @@ const PaymentHistory = () => {
         }
       });
       
-      // Add footer with date
       const pageCount = doc.internal.getNumberOfPages();
       for(let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -212,7 +131,6 @@ const PaymentHistory = () => {
       Amount: txn.amount,
       Date: formatDate(txn.date),
       Time: txn.date.toLocaleTimeString(),
-      Card_Number: txn.cardNumber,
       Vehicle_Type: txn.vehicleType,
       Spot_Number: txn.spotNumber,
       Status: txn.status
@@ -232,13 +150,11 @@ const PaymentHistory = () => {
 
   // Calculate most visited location based on location property
   const getMostVisitedLocation = () => {
-    // Group by location address (before the comma if there is one)
     const locationCount = {};
     
     transactions.forEach(txn => {
       if (!txn.location) return;
       
-      // Extract the main location name (before the comma)
       const mainLocation = txn.location.split(',')[0].trim();
       locationCount[mainLocation] = (locationCount[mainLocation] || 0) + 1;
     });
@@ -246,7 +162,6 @@ const PaymentHistory = () => {
     let mostVisited = "";
     let maxCount = 0;
     
-    // Find the most frequent location
     Object.entries(locationCount).forEach(([location, count]) => {
       if (count > maxCount) {
         mostVisited = location;
@@ -311,30 +226,30 @@ const PaymentHistory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-[#1F2937] p-6 font-['Proxima Nova', 'Roboto', sans-serif]">
-      {/* Header with new color scheme */}
+    <div className="min-h-screen bg-[#F9FAFB] text-[#1F2937] p-6 font-sans">
+      {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-[#E5E7EB] pb-4">
         <div className="flex items-center">
             <button 
                 onClick={() => navigate("/dashboard")} 
-                className="flex items-center mr-6 bg-white px-4 py-3 rounded-xl hover:bg-[#DBEAFE] transition-all duration-300 shadow-md border border-[#E5E7EB] hover:shadow-xl hover:translate-y-[-2px]"
+                className="flex items-center mr-6 bg-white px-4 py-3 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-sm border border-[#E5E7EB]"
                 >
-                <FaArrowLeft className="mr-2 text-[#C94B4B]" />
+                <FaArrowLeft className="mr-2 text-gray-600" />
                 <span>Return to Dashboard</span>
             </button>
-          <h1 className="text-3xl font-bold text-[#664a85]">Payment History</h1>
+          <h1 className="text-3xl font-bold text-[#1F2937]">Payment History</h1>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={downloadPDF}
-            className="flex items-center bg-[#C94B4B] text-white px-4 py-2 rounded-lg hover:bg-[#B83E3E] transition-colors shadow-sm"
+            className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
           >
             <FaDownload className="mr-2" />
             <span>Export PDF</span>
           </button>
           <button 
             onClick={downloadCSV}
-            className="flex items-center bg-[#3B82F6] text-white px-4 py-2 rounded-lg hover:bg-[#2563EB] transition-colors shadow-sm"
+            className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
           >
             <FaPrint className="mr-2" />
             <span>Export CSV</span>
@@ -351,13 +266,13 @@ const PaymentHistory = () => {
             placeholder="Search by name, location or transaction ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#DBEAFE] text-[#1F2937] shadow-sm"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-[#E5E7EB] rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-[#1F2937] shadow-sm"
           />
         </div>
         
         <div className="flex gap-2">
-          <div className="flex items-center bg-white px-4 py-2 rounded-lg shadow-sm border border-[#E5E7EB]">
-            <FaFilter className="mr-2 text-[#3B82F6]" />
+          <div className="flex items-center bg-white px-4 py-2 rounded-xl shadow-sm border border-[#E5E7EB]">
+            <FaFilter className="mr-2 text-gray-500" />
             <select 
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
@@ -372,9 +287,9 @@ const PaymentHistory = () => {
           
           <button 
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="flex items-center bg-white px-4 py-2 rounded-lg hover:bg-[#DBEAFE] transition-colors shadow-sm border border-[#E5E7EB]"
+            className="flex items-center bg-white px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors shadow-sm border border-[#E5E7EB]"
           >
-            <FaSort className="mr-2 text-[#3B82F6]" />
+            <FaSort className="mr-2 text-gray-500" />
             <span>{sortOrder === "asc" ? "Oldest First" : "Newest First"}</span>
           </button>
         </div>
@@ -383,13 +298,13 @@ const PaymentHistory = () => {
       {/* Transactions Table */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3B82F6]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : currentTransactions.length > 0 ? (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#F3F4F6] border-b border-[#E5E7EB]">
+              <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
                 <th className="py-4 px-6 text-left">Date & Time</th>
                 <th className="py-4 px-6 text-left">Transaction ID</th>
                 <th className="py-4 px-6 text-left">Location</th>
@@ -416,8 +331,8 @@ const PaymentHistory = () => {
                     </span>
                   </td>
                   <td className="py-4 px-6 text-center">
-                    <button className="p-2 bg-[#DBEAFE] rounded-lg hover:bg-[#BFDBFE] transition-colors">
-                      <FaEye className="text-[#3B82F6]" />
+                    <button className="p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                      <FaEye className="text-blue-500" />
                     </button>
                   </td>
                 </tr>
@@ -426,7 +341,7 @@ const PaymentHistory = () => {
           </table>
         </div>
       ) : (
-        <div className="bg-white rounded-xl p-8 text-center shadow-md">
+        <div className="bg-white rounded-xl p-8 text-center shadow-sm">
           <p className="text-xl mb-2 text-[#1F2937]">No transactions found</p>
           <p className="text-[#4B5563]">Try adjusting your search or filter criteria</p>
         </div>
@@ -441,7 +356,7 @@ const PaymentHistory = () => {
             className={`px-3 py-1 rounded-lg ${
               currentPage === 1 
                 ? 'bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed' 
-                : 'bg-white hover:bg-[#DBEAFE] text-[#1F2937] border border-[#E5E7EB]'
+                : 'bg-white hover:bg-gray-50 text-[#1F2937] border border-[#E5E7EB]'
             }`}
           >
             Prev
@@ -453,8 +368,8 @@ const PaymentHistory = () => {
               onClick={() => setCurrentPage(number)}
               className={`px-3 py-1 rounded-lg ${
                 currentPage === number
-                  ? 'bg-[#3B82F6] text-white'
-                  : 'bg-white hover:bg-[#DBEAFE] text-[#1F2937] border border-[#E5E7EB]'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white hover:bg-gray-50 text-[#1F2937] border border-[#E5E7EB]'
               }`}
             >
               {number}
@@ -467,7 +382,7 @@ const PaymentHistory = () => {
             className={`px-3 py-1 rounded-lg ${
               currentPage === pageCount 
                 ? 'bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed' 
-                : 'bg-white hover:bg-[#DBEAFE] text-[#1F2937] border border-[#E5E7EB]'
+                : 'bg-white hover:bg-gray-50 text-[#1F2937] border border-[#E5E7EB]'
             }`}
           >
             Next
@@ -476,7 +391,7 @@ const PaymentHistory = () => {
       )}
 
       {/* Summary Section */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-md">
+      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm">
         <h2 className="text-xl font-bold mb-4 text-[#1F2937]">Payment Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-[#F9FAFB] p-4 rounded-lg border border-[#E5E7EB]">
