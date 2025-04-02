@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { FaMapMarkerAlt, FaStar, FaCarAlt, FaParking, FaRegClock, FaArrowLeft, FaRoute, FaCalendarCheck, FaRegStar, FaComment, FaChevronDown, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaLanguage, FaGlobe, FaBell } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaCarAlt, FaParking, FaRegClock, FaArrowLeft, FaRoute, FaCalendarCheck, FaRegStar, FaComment, FaChevronDown, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaLanguage, FaGlobe, FaBell, FaChartLine } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { collection, getDocs, query, where, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
@@ -433,7 +434,6 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
           </div>
         </div>
       </div>
-      
       {/* Features */}
       <div className="mb-6">
         <h3 className="font-semibold text-[#1F2937] mb-2">Features</h3>
@@ -447,6 +447,56 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
             </span>
           ))}
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="grid grid-cols-2 gap-3 mt-6">
+        <button
+          onClick={() => onDirections(space)}
+          className="flex items-center justify-center bg-[#3B82F6] text-white py-3 rounded-lg hover:bg-[#2563EB] transition-colors"
+        >
+          <FaRoute className="mr-2" />
+          Get Directions
+        </button>
+        
+        {Number(space.spots) > 0 ? (
+          <button
+            onClick={() => onBookNow(space)}
+            className="flex items-center justify-center bg-[#C94B4B] text-white py-3 rounded-lg hover:bg-[#C94B4B]/80 transition-colors"
+          >
+            <FaCalendarCheck className="mr-2" />
+            Book Now
+          </button>
+        ) : (
+          <button
+            onClick={handleNotifyMe}
+            disabled={isNotifying}
+            className={`flex items-center justify-center py-3 rounded-lg transition-colors ${
+              isNotifying 
+                ? "bg-gray-400 text-white cursor-not-allowed" 
+                : isSubscribed
+                  ? "bg-green-500 hover:bg-green-600 text-white"
+                  : "bg-[#8373BF] hover:bg-[#8373BF]/80 text-white"
+            }`}
+          >
+            <FaBell className="mr-2" />
+            {isNotifying 
+              ? "Processing..." 
+              : isSubscribed 
+                ? "Cancel Notification" 
+                : "Notify When Available"}
+          </button>
+        )}
+      </div>
+
+      {/* Availability Predictions Link - Now centered */}
+      <div className="mt-6 flex justify-center">
+        <Link 
+          to={`/predictions/${space.id}`}
+          className="inline-flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+        >
+          <FaChartLine className="mr-2" /> View Availability Predictions
+        </Link>
       </div>
 
       {/* Feedback Section */}
@@ -670,46 +720,6 @@ const ParkingSpaceDetails = ({ space, onClose, onBookNow, onDirections }) => {
             </>
           )}
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-3 mt-6">
-        <button
-          onClick={() => onDirections(space)}
-          className="flex items-center justify-center bg-[#3B82F6] text-white py-3 rounded-lg hover:bg-[#2563EB] transition-colors"
-        >
-          <FaRoute className="mr-2" />
-          Get Directions
-        </button>
-        
-        {Number(space.spots) > 0 ? (
-          <button
-            onClick={() => onBookNow(space)}
-            className="flex items-center justify-center bg-[#C94B4B] text-white py-3 rounded-lg hover:bg-[#C94B4B]/80 transition-colors"
-          >
-            <FaCalendarCheck className="mr-2" />
-            Book Now
-          </button>
-        ) : (
-          <button
-            onClick={handleNotifyMe}
-            disabled={isNotifying}
-            className={`flex items-center justify-center py-3 rounded-lg transition-colors ${
-              isNotifying 
-                ? "bg-gray-400 text-white cursor-not-allowed" 
-                : isSubscribed
-                  ? "bg-green-500 hover:bg-green-600 text-white"
-                  : "bg-[#8373BF] hover:bg-[#8373BF]/80 text-white"
-            }`}
-          >
-            <FaBell className="mr-2" />
-            {isNotifying 
-              ? "Processing..." 
-              : isSubscribed 
-                ? "Cancel Notification" 
-                : "Notify When Available"}
-          </button>
-        )}
       </div>
     </div>
   );

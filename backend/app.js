@@ -7,6 +7,8 @@ import process from 'process';
 import notificationRoutes from './routes/notifications.js';
 import { initializeScheduler } from './scheduler.js';
 import admin from 'firebase-admin';
+import { startDataCollectionScheduler, runDataCollectionNow } from './schedulers/dataCollectionScheduler.js';
+import predictionRoutes from './routes/predictionRoutes.js';
 
 dotenv.config();
 
@@ -57,9 +59,27 @@ app.get('/', (req, res) => {
 app.use('/api', feedbackRoutes);
 app.use('/api', complaintsRoutes); 
 app.use('/api/notifications', notificationRoutes);
+app.use('/api', predictionRoutes);
 
 // Initialize scheduler
 initializeScheduler();
+
+// Start the data collection scheduler when the server starts
+const dataCollectionJob = startDataCollectionScheduler();
+
+// Run an initial data collection to populate some data
+// Comment this out if you don't want to run it immediately
+runDataCollectionNow().catch(err => {
+  console.error("Error running initial data collection:", err);
+});
+
+// Graceful shutdown to clean up scheduler
+process.on('SIGINT', () => {
+  console.log('Stopping data collection scheduler...');
+  dataCollectionJob.cancel();
+  // Other cleanup code...
+  process.exit(0);
+});
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

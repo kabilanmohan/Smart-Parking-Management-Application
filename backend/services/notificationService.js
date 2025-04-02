@@ -62,6 +62,16 @@ const checkAvailabilityAndNotify = async () => {
       notificationsSnapshot.forEach(doc => {
         const notification = doc.data();
         
+        // Ensure URL uses HTTPS
+        let bookingUrl = process.env.CORS_ORIGIN || '';
+        
+        // Force HTTPS
+        if (bookingUrl.startsWith('http://')) {
+          bookingUrl = bookingUrl.replace('http://', 'https://');
+        } else if (!bookingUrl.startsWith('https://')) {
+          bookingUrl = `https://${bookingUrl}`;
+        }
+        
         // Prepare email
         const mailOptions = {
           from: '"Smart Parking App" <noreply@smartparking.com>',
@@ -74,7 +84,7 @@ const checkAvailabilityAndNotify = async () => {
               <p><strong>Available spots:</strong> ${parkingSpaceData.AvailableSlots}</p>
               <p><strong>Location:</strong> ${parkingSpaceData.Address || 'No address provided'}</p>
               <div style="margin: 30px 0;">
-                <a href="${process.env.CORS_ORIGIN}/parking-lot?id=${parkingSpaceId}" 
+                <a href="${bookingUrl}/parking-lot?id=${parkingSpaceId}" 
                    style="background-color: #C94B4B; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">
                   Book Now
                 </a>

@@ -21,6 +21,7 @@ import MyBookings from './components/MyBookings';
 import BookingsList from './components/BookingsList';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import NotificationHistory from "./components/NotificationHistory";
+import ParkingPrediction from './components/ParkingPrediction';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -112,6 +113,10 @@ function App() {
                 }}
               />
             }
+          />
+          <Route 
+            path="/predictions/:parkingSpaceId" 
+            element={user ? <ParkingPrediction /> : <Navigate to="/login" replace />} 
           />
         </Routes>
       </Router>
