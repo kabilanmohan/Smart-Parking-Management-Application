@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, serverTimestamp, GeoPoint } from 'firebase/firestore';
-import { FaArrowLeft, FaMapMarkerAlt, FaParking, FaDollarSign, FaCar, FaMotorcycle, FaBuilding } from 'react-icons/fa';
+import { FaArrowLeft, FaMapMarkerAlt, FaParking, FaDollarSign, FaCar, FaMotorcycle, FaBuilding, FaInfoCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Loader from './Loader';
@@ -13,8 +13,6 @@ const AddParkingSpace = ({ onBack }) => {
   const [formData, setFormData] = useState({
     Name: '',
     Address: '',
-    TotalSlots: 0,
-    AvailableSlots: 0,
     levels: 1,
     pricing: {
       car: 0,
@@ -50,7 +48,7 @@ const AddParkingSpace = ({ onBack }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'TotalSlots' || name === 'AvailableSlots' || name === 'levels' 
+      [name]: name === 'levels'
         ? parseInt(value) || 0 
         : value
     }));
@@ -89,14 +87,6 @@ const AddParkingSpace = ({ onBack }) => {
       return;
     }
 
-    if (formData.TotalSlots <= 0) {
-      setMessage({ 
-        text: 'Total slots must be greater than zero.', 
-        type: 'error' 
-      });
-      return;
-    }
-
     if (formData.location.latitude === 0 && formData.location.longitude === 0) {
       setMessage({ 
         text: 'Please provide valid location coordinates.', 
@@ -112,8 +102,8 @@ const AddParkingSpace = ({ onBack }) => {
       const parkingSpaceData = {
         Name: formData.Name,
         Address: formData.Address,
-        TotalSlots: formData.TotalSlots,
-        AvailableSlots: formData.AvailableSlots || formData.TotalSlots, // Default to total if not specified
+        TotalSlots: 0, // Initialize with zero - will be updated after grid setup
+        AvailableSlots: 0, // Initialize with zero - will be updated after grid setup
         levels: formData.levels,
         pricing: {
           car: formData.pricing.car,
@@ -138,8 +128,6 @@ const AddParkingSpace = ({ onBack }) => {
       setFormData({
         Name: '',
         Address: '',
-        TotalSlots: 0,
-        AvailableSlots: 0,
         levels: 1,
         pricing: {
           car: 0,
@@ -238,36 +226,11 @@ const AddParkingSpace = ({ onBack }) => {
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#4B5563] mb-1">
-                  Total Slots*
-                </label>
-                <input
-                  type="number"
-                  name="TotalSlots"
-                  min="1"
-                  value={formData.TotalSlots}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8373BF]"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-[#4B5563] mb-1">
-                  Available Slots
-                </label>
-                <input
-                  type="number"
-                  name="AvailableSlots"
-                  min="0"
-                  max={formData.TotalSlots}
-                  value={formData.AvailableSlots}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8373BF]"
-                />
-              </div>
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+              <p className="text-sm text-blue-800 flex items-start">
+                <FaInfoCircle className="mr-2 mt-0.5 flex-shrink-0 text-blue-600" />
+                <span>The total number of parking slots and available slots will be automatically calculated after you design the parking layout in the next step.</span>
+              </p>
             </div>
             
             <div>
@@ -366,7 +329,7 @@ const AddParkingSpace = ({ onBack }) => {
             
             <div className="bg-[#F9FAFB] p-3 rounded-lg mt-2">
               <p className="text-sm text-[#4B5563]">
-                <strong>Tip:</strong> You can find coordinates by right-clicking on a location in Google Maps and selecting What s here?
+                <strong>Tip:</strong> You can find coordinates by right-clicking on a location in Google Maps and selecting --Whats here--
               </p>
             </div>
           </div>
@@ -392,6 +355,7 @@ const AddParkingSpace = ({ onBack }) => {
     </div>
   );
 };
+
 AddParkingSpace.propTypes = {
   onBack: PropTypes.func.isRequired
 };

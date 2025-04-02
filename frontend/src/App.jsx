@@ -19,7 +19,8 @@ import AdminDashboard from "./components/AdminDashboard";
 import PaymentForm from "./components/PaymentForm"; // Import PaymentForm
 import MyBookings from './components/MyBookings';
 import BookingsList from './components/BookingsList';
-
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import NotificationHistory from "./components/NotificationHistory";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -57,55 +58,64 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} /> 
-        <Route 
-          path="/dashboard" 
-          element={user ? <Home /> : <Navigate to="/login" replace />} 
-        /> 
-        <Route 
-          path="/login" 
-          element={user ? <Navigate to="/dashboard" replace /> : <Auth />}
-        />
-        <Route path="/admin" element={<AdminProfile />} />
-        <Route 
-          path="/profile" 
-          element={user ? <UserProfile /> : <Navigate to="/login" replace />} 
-        />
-        <Route path="/requests" element={<PendingRequests />} />
-        <Route path="/setup-parking" element={<ParkingSetup />} />
-        <Route path="/parking-lot" element={<ParkingLot />} />
-        <Route path="/payment_module" element={<App2 />} />
-        <Route path="/bookings" element={<MyBookings />} />
-        <Route path="/admin/bookings" element={<BookingsList />} />
-        <Route path="/payment-history" element={user ? <PaymentHistory /> : <Navigate to="/dashboard" replace />} />
-        <Route 
-          path="/help-support" 
-          element={user ? <HelpAndSupport /> : <Navigate to="/login" replace />} 
-        />
-        
-        {/* Admin Routes */}
-        <Route path="/admin-login" element={user && isAdmin ? <Navigate to="/admin-dashboard" replace /> : <AdminLogin />} />
-        <Route 
-          path="/admin-dashboard" 
-          element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/admin-login" replace />} 
-        />
-        
-        {/* Payment Route */}
-        <Route
-          path="/payment"
-          element={
-            <PaymentForm
-              onPaymentSuccess={() => {
-                // Use Navigate component for redirection instead of navigate function
-                return <Navigate to="/payment-history" replace={true} />;
-              }}
-            />
-          }
-        />
-      </Routes>
-    </Router>
+    <PayPalScriptProvider 
+      options={{ 
+        "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,  
+        currency: "USD",
+        intent: "capture"
+      }}
+    >
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} /> 
+          <Route 
+            path="/dashboard" 
+            element={user ? <Home /> : <Navigate to="/login" replace />} 
+          /> 
+          <Route 
+            path="/login" 
+            element={user ? <Navigate to="/dashboard" replace /> : <Auth />}
+          />
+          <Route path="/admin" element={<AdminProfile />} />
+          <Route path = "/alerts" element = {<NotificationHistory/>}/>
+          <Route 
+            path="/profile" 
+            element={user ? <UserProfile /> : <Navigate to="/login" replace />} 
+          />
+          <Route path="/requests" element={<PendingRequests />} />
+          <Route path="/setup-parking" element={<ParkingSetup />} />
+          <Route path="/parking-lot" element={<ParkingLot />} />
+          <Route path="/payment_module" element={<App2 />} />
+          <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/admin/bookings" element={<BookingsList />} />
+          <Route path="/payment-history" element={user ? <PaymentHistory /> : <Navigate to="/dashboard" replace />} />
+          <Route 
+            path="/help-support" 
+            element={user ? <HelpAndSupport /> : <Navigate to="/login" replace />} 
+          />
+          
+          {/* Admin Routes */}
+          <Route path="/admin-login" element={user && isAdmin ? <Navigate to="/admin-dashboard" replace /> : <AdminLogin />} />
+          <Route 
+            path="/admin-dashboard" 
+            element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/admin-login" replace />} 
+          />
+          
+          {/* Payment Route */}
+          <Route
+            path="/payment"
+            element={
+              <PaymentForm
+                onPaymentSuccess={() => {
+                  // Use Navigate component for redirection instead of navigate function
+                  return <Navigate to="/payment-history" replace={true} />;
+                }}
+              />
+            }
+          />
+        </Routes>
+      </Router>
+    </PayPalScriptProvider>
   );
 }
 
