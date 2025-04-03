@@ -657,7 +657,7 @@ const Home = () => {
         <header className="fixed top-0 left-0 right-0 flex flex-col md:flex-row items-center justify-between p-4 bg-white/95 backdrop-blur-sm shadow-sm z-40 border-b border-[#E5E7EB]">
           {/* App Title - Fixed on the left */}
           <div className={`flex items-center ${isSidebarOpen ? "ml-64" : "ml-8"} transition-all duration-300`}>
-            <h1 className="text-xl md:text-2xl font-bold text-[#C94B4B] tracking-wider font-['Proxima_Nova','Roboto',sans-serif]">VINTAGE PARKING</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-[#C94B4B] tracking-wider font-['Proxima_Nova','Roboto',sans-serif]">CRIMSON PARKING</h1>
           </div>
 
           {/* Search Bar with Dropdown */}
@@ -745,7 +745,7 @@ const Home = () => {
 
         {/* Footer */}
         <footer className="p-6 text-center text-[#4B5563] border-t border-[#E5E7EB] mt-8">
-          <p>© 2025 Vintage Parking Management — All rights reserved.</p>
+          <p>© 2025 Crimson Parking Management — All rights reserved.</p>
         </footer>
       </div>
 

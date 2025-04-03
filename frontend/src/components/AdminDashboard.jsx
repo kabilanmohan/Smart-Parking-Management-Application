@@ -407,7 +407,7 @@ const AdminDashboard = () => {
 
         {/* Footer */}
         <footer className="p-6 text-center text-[#4B5563] border-t border-[#E5E7EB] mt-8">
-          <p>© 2025 Smart Parking Management — Admin Portal</p>
+          <p>© 2025 Crimson Parking Management — Admin Portal</p>
         </footer>
       </div>
     </div>

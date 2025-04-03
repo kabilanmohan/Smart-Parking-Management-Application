@@ -53,7 +53,7 @@ if (!admin.apps.length) {
 
 // Routes
 app.get('/', (req, res) => {
-    res.send('Smart Parking Management Application backend!');
+    res.send('Crimson Parking Management Application backend!');
 });
 
 app.use('/api', feedbackRoutes);

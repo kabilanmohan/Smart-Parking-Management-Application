@@ -72,7 +72,7 @@ function getComplaintEmailTemplate(userData, complaintData, parkingSpotData) {
         ` : ''}
       </div>
       <div class="footer">
-        <p>© 2025 Vintage Parking Management — All rights reserved.</p>
+        <p>© 2025 Crimson Parking Management — All rights reserved.</p>
       </div>
     </div>
   </body>
@@ -243,8 +243,8 @@ router.get('/test-email', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: ADMIN_EMAIL,
-      subject: 'Test Email - Smart Parking Management',
-      text: 'This is a test email from the Smart Parking Management Application. If you receive this, the email configuration is working correctly.'
+      subject: 'Test Email - Crimson Parking Management',
+      text: 'This is a test email from the Crimson Parking Management Application. If you receive this, the email configuration is working correctly.'
     };
     
     await transporter.sendMail(mailOptions);

@@ -30,7 +30,7 @@ const LandingPage = () => {
           />
 
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-[#C94B4B] to-[#b33737] bg-clip-text text-transparent">
-            Gotham Parking
+            Crimson Parking
           </h1>
           <p className="text-xl text-[#4B5563]/90 font-medium mb-8">
             Smart Parking Solutions for Modern Cities
@@ -67,13 +67,13 @@ const LandingPage = () => {
             <div className="feature-card p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-shadow">
               <FaParking className="text-4xl text-[#C94B4B] mb-4 mx-auto" />
               <h3 className="text-xl font-bold mb-2">Real-Time Availability</h3>
-              <p className="text-[#4B5563]">Check parking spot availability in real-time across Gotham City</p>
+              <p className="text-[#4B5563]">Check parking spot availability in real-time </p>
             </div>
 
             <div className="feature-card p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-shadow">
               <FaClock className="text-4xl text-[#C94B4B] mb-4 mx-auto" />
               <h3 className="text-xl font-bold mb-2">Instant Reservations</h3>
-              <p className="text-[#4B5563]">Book your parking spot in advance with our mobile app</p>
+              <p className="text-[#4B5563]">Book your parking spot in advance with our web app</p>
             </div>
 
             <div className="feature-card p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-shadow">
@@ -137,7 +137,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="w-full bg-[#1F2937] text-white py-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">&copy; 2025 ParkGrid. All rights reserved.</p>
+          <p className="mb-4">&copy; 2025 Crimson Parking. All rights reserved.</p>
           <div className="flex justify-center space-x-6">
             <a href="#privacy" className="hover:text-[#C94B4B] transition-colors">Privacy Policy</a>
             <a href="#terms" className="hover:text-[#C94B4B] transition-colors">Terms of Service</a>

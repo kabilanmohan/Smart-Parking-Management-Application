@@ -175,12 +175,12 @@ const handleGoogleSignIn = async () => {
         <div className="hidden md:block md:w-1/2 relative overflow-hidden">
           <img
             src={batmanParkingImage}
-            alt="Smart Parking"
+            alt="Crimson Parking"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1F2937]/90 to-transparent p-12 flex flex-col justify-between">
             <div className="text-white">
-              <h1 className="text-4xl font-extrabold mb-4">VINTAGE PARKING</h1>
+              <h1 className="text-4xl font-extrabold mb-4">CRIMSON PARKING</h1>
               <p className="text-xl text-gray-300 font-light">Smart Parking Solutions</p>
             </div>
             <div className="space-y-4">
@@ -209,7 +209,7 @@ const handleGoogleSignIn = async () => {
         {/* Right Auth Section */}
         <div className="w-full md:w-1/2 bg-white p-6 md:p-10 flex flex-col justify-center">
           <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Welcome to Vintage Parking</h2>
+            <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Welcome to CRIMSON Parking</h2>
             <p className="text-[#4B5563]">Access the future of smart parking solutions</p>
           </div>
 
@@ -387,7 +387,7 @@ const handleGoogleSignIn = async () => {
 
           {/* Footer */}
           <div className="mt-8 text-center text-[#4B5563] text-sm">
-            <p>&copy; 2025 Vintage Parking. All rights reserved.</p>
+            <p>&copy; 2025 Crimson Parking. All rights reserved.</p>
           </div>
         </div>
       </div>
